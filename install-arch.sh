@@ -49,8 +49,6 @@ arch_logo() {
     echo ""
     echo -e "${GREEN}Data Utworzenia Skryptu: 17.01.2026${RESET}"
     echo ""
-    echo -e "${GREEN}Autor: Krzysiek Wierciuch${RESET}"
-    echo ""
 }
 
 arch_logo
