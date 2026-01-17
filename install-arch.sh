@@ -117,7 +117,7 @@ PACMAN_PKGS=(
   plasma-nm plasma-pa bluedevil plasma-workspace-wallpapers plasma-browser-integration
   ark p7zip unrar unzip lrzip lzop zip papirus-icon-theme capitaine-cursors
   kdeplasma-addons kdeconnect sshfs noto-fonts-cjk noto-fonts-extra cantarell-fonts hunspell-pl
-  lact lib32-mesa lib32-vulkan-radeon clinfo firefox firefox-i18n-pl
+  lact lib32-mesa lib32-vulkan-radeon clinfo kwalletmanager firefox firefox-i18n-pl
   openrgb steam qbittorrent obs-studio elisa thunderbird putty okular filezilla gsmartcontrol
   teamspeak3 gwenview kdegraphics-thumbnailers ffmpegthumbs reaper mangohud occt btop spectacle timeshift
   kolourpaint gnome-maps gnome-calendar kcalc sweeper vlc vlc-plugins-all scrcpy libreoffice-fresh
