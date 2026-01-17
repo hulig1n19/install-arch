@@ -49,6 +49,8 @@ arch_logo() {
     echo ""
     echo -e "${GREEN}Data Utworzenia Skryptu: 17.01.2026${RESET}"
     echo ""
+    echo -e "${GREEN}Autor: Krzysiek Wierciuch${RESET}"
+    echo ""
 }
 
 arch_logo
@@ -405,9 +407,6 @@ for i in {10..1}; do
     echo "Restart za $i..."
     sleep 1
 done
-
-# Usunięcie skryptu po zakończeniu instalacji
-rm -- "$0"
 
 info "Restartuję system..."
 sudo systemctl reboot
