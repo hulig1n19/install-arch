@@ -406,8 +406,5 @@ for i in {10..1}; do
     sleep 1
 done
 
-# Usunięcie skryptu po zakończeniu instalacji
-rm -- "$0"
-
 info "Restartuję system..."
 sudo systemctl reboot
