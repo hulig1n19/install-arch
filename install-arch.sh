@@ -114,7 +114,7 @@ fi
 
 PACMAN_PKGS=(
   git base-devel less wget discover flatpak power-profiles-daemon
-  plasma-nm plasma-pa bluedevil plasma-workspace-wallpapers plasma-browser-integration
+  plasma-nm plasma-pa bluedevil plasma-workspace-wallpapers
   ark p7zip unrar unzip lrzip lzop zip papirus-icon-theme capitaine-cursors
   kdeplasma-addons kdeconnect sshfs noto-fonts-cjk noto-fonts-extra cantarell-fonts hunspell-pl
   lact lib32-mesa lib32-vulkan-radeon clinfo firefox firefox-i18n-pl kwalletmanager
