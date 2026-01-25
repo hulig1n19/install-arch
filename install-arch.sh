@@ -45,9 +45,9 @@ arch_logo() {
     echo ""
     echo -e "${YELLOW}Autor Skryptu: Krzysztof Wierciuch${RESET}"
     echo ""
-    echo -e "${RED}Godzina Utworzenia Skryptu: 01:45${RESET}"
+    echo -e "${RED}Godzina Utworzenia Skryptu: 00:21${RESET}"
     echo ""
-    echo -e "${GREEN}Data Utworzenia Skryptu: 17.01.2026${RESET}"
+    echo -e "${GREEN}Data Utworzenia Skryptu: 26.01.2026${RESET}"
     echo ""
 }
 
