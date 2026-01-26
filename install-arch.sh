@@ -43,9 +43,9 @@ arch_logo() {
     echo "=================================="
 
     echo ""
-    echo -e "${YELLOW}Autor Skryptu: Krzysztof Wierciuch${RESET}"
+    echo -e "${YELLOW}Autor Skryptu: Krzysiek Wierciuch (Hulig1n19)${RESET}"
     echo ""
-    echo -e "${RED}Godzina Utworzenia Skryptu: 00:21${RESET}"
+    echo -e "${RED}Godzina Utworzenia Skryptu: 20:14${RESET}"
     echo ""
     echo -e "${GREEN}Data Utworzenia Skryptu: 26.01.2026${RESET}"
     echo ""
@@ -235,7 +235,32 @@ fi
 
 
 ###############################################
-# 10. SDDM — dodanie bloku tylko jeśli go nie ma
+# 10. Usuwanie Discover z domyślnej listy launcherów KDE Plasma 6
+###############################################
+
+info "Usuwam Discover z domyślnej listy launcherów KDE..."
+
+TASKMANAGER_CONFIG="/usr/share/plasma/plasmoids/org.kde.plasma.taskmanager/contents/config/main.xml"
+
+if [ -f "$TASKMANAGER_CONFIG" ]; then
+    if grep -q "applications:org.kde.discover.desktop" "$TASKMANAGER_CONFIG"; then
+        info "Znaleziono wpis Discover — usuwam..."
+
+        # Usuwanie wszystkich wariantów wpisu Discover
+        sudo sed -i 's/applications:org.kde.discover.desktop,//g' "$TASKMANAGER_CONFIG"
+        sudo sed -i 's/,applications:org.kde.discover.desktop//g' "$TASKMANAGER_CONFIG"
+        sudo sed -i 's/applications:org.kde.discover.desktop//g' "$TASKMANAGER_CONFIG"
+
+        ok "Discover został usunięty z domyślnej listy launcherów."
+    else
+        warn "Discover nie znajduje się na liście launcherów — pomijam."
+    fi
+else
+    warn "Plik konfiguracyjny Task Manager nie istnieje: $TASKMANAGER_CONFIG"
+fi
+
+###############################################
+# 11. SDDM — dodanie bloku tylko jeśli go nie ma
 ###############################################
 
 info "Konfiguruję SDDM..."
@@ -259,7 +284,7 @@ fi
 
 
 ###############################################
-# 11. mkinitcpio — dodanie amdgpu bez duplikatów
+# 12. mkinitcpio — dodanie amdgpu bez duplikatów
 ###############################################
 
 info "Konfiguruję mkinitcpio..."
@@ -301,7 +326,7 @@ fi
 
 
 ###############################################
-# 12. systemd-boot — ustawienie timeout 0
+# 13. systemd-boot — ustawienie timeout 0
 ###############################################
 
 info "Ustawiam timeout 0 w systemd-boot..."
@@ -318,7 +343,7 @@ fi
 
 
 ###############################################
-# 13. Gamemode — konfiguracja
+# 14. Gamemode — konfiguracja
 ###############################################
 
 info "Konfiguruję gamemode..."
@@ -378,7 +403,7 @@ fi
 
 
 ###############################################
-# 14. Czyszczenie cache
+# 15. Czyszczenie cache
 ###############################################
 
 info "Czyszczę cache pacmana i yay..."
@@ -388,7 +413,7 @@ ok "Cache wyczyszczony."
 
 
 ###############################################
-# 15. Finalna aktualizacja
+# 16. Finalna aktualizacja
 ###############################################
 
 info "Finalna aktualizacja systemu..."
