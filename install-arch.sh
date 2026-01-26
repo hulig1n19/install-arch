@@ -117,9 +117,9 @@ PACMAN_PKGS=(
   plasma-nm plasma-pa bluedevil plasma-workspace-wallpapers plasma-browser-integration
   ark p7zip unrar unzip lrzip lzop zip papirus-icon-theme capitaine-cursors
   kdeplasma-addons kdeconnect sshfs noto-fonts-cjk noto-fonts-extra cantarell-fonts hunspell-pl
-  lact lib32-mesa lib32-vulkan-radeon clinfo kwallet-pam kwalletmanager
+  lact lib32-mesa lib32-vulkan-radeon clinfo kwallet-pam kwalletmanager vim
   openrgb steam qbittorrent obs-studio elisa thunderbird putty okular filezilla gsmartcontrol
-  gwenview kdegraphics-thumbnailers ffmpegthumbs reaper mangohud occt btop spectacle timeshift
+  teamspeak3 gwenview kdegraphics-thumbnailers ffmpegthumbs mangohud occt btop spectacle timeshift
   kolourpaint gnome-maps gnome-calendar kcalc sweeper vlc vlc-plugins-all scrcpy libreoffice-fresh
   libreoffice-fresh-pl gnome-disk-utility ntfs-3g exfatprogs dosfstools btrfs-progs xfsprogs f2fs-tools
   wine dosbox gst-plugins-bad gst-plugins-base gst-plugins-good gst-plugins-ugly libgphoto2 samba sane unixodbc wine-gecko wine-mono
@@ -194,7 +194,7 @@ fi
 ###############################################
 
 AUR_PKGS=(
-  heroic-games-launcher opencl-amd xone-dkms arch-update
+  heroic-games-launcher opencl-amd xone-dkms arch-update protonplus
 )
 
 for pkg in "${AUR_PKGS[@]}"; do
