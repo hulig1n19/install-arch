@@ -144,7 +144,7 @@ PACMAN_PKGS=(
   kdeplasma-addons kdeconnect sshfs noto-fonts-cjk noto-fonts-extra cantarell-fonts hunspell-pl
   lact lib32-mesa lib32-vulkan-radeon clinfo kwallet-pam kwalletmanager vim
   openrgb steam qbittorrent obs-studio elisa thunderbird putty okular filezilla gsmartcontrol
-  teamspeak3 gwenview kdegraphics-thumbnailers ffmpegthumbs mangohud occt btop spectacle
+  gwenview kdegraphics-thumbnailers ffmpegthumbs mangohud occt btop spectacle
   kolourpaint gnome-maps gnome-calendar kcalc sweeper vlc vlc-plugins-all scrcpy libreoffice-fresh
   libreoffice-fresh-pl gnome-disk-utility ntfs-3g exfatprogs dosfstools btrfs-progs xfsprogs f2fs-tools
   wine dosbox gst-plugins-bad gst-plugins-base gst-plugins-good gst-plugins-ugly libgphoto2 samba sane unixodbc wine-gecko wine-mono
