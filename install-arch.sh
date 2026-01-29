@@ -219,7 +219,7 @@ fi
 ###############################################
 
 AUR_PKGS=(
-  heroic-games-launcher opencl-amd xone-dkms arch-update protonplus
+  heroic-games-launcher opencl-amd xone-dkms arch-update protonplus maliit-framework maliit-keyboard
 )
 
 for pkg in "${AUR_PKGS[@]}"; do
