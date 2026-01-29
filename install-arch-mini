@@ -5,6 +5,7 @@ set -euo pipefail
 # Kolory + funkcje komunikatów + pasek postępu
 ###############################################
 
+WHITE="\e[97m"
 RED="\e[31m"
 GREEN="\e[32m"
 YELLOW="\e[33m"
@@ -49,7 +50,7 @@ arch_logo() {
     echo ""
     echo -e "${GREEN}Data Utworzenia Skryptu: 26.01.2026${RESET}"
     echo ""
-    echo -e "${WHITE}Utworzono Specjalnie Dla Lenovo M715q Tiny${RESET}"
+    echo -e "${WHITE}Utworzono Specjalnie Dla: Lenovo M715q Tiny${RESET}"
 }
 
 arch_logo
