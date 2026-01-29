@@ -49,7 +49,7 @@ arch_logo() {
     echo ""
     echo -e "${GREEN}Data Utworzenia Skryptu: 26.01.2026${RESET}"
     echo ""
-    echo -e "${RED}Utworzono Specjalnie Dla LENOVO M715Q TINY${RESET}"
+    echo -e "${WHITE}Utworzono Specjalnie Dla Lenovo M715q Tiny${RESET}"
 }
 
 arch_logo
