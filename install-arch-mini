@@ -41,16 +41,18 @@ arch_logo() {
     echo "=================================="
     echo "     ARCH LINUX - KDE Plasma      "
     echo "     Skrypt Instalacyjny 2026     "
+    echo "           30.01.2026             "
     echo "=================================="
 
     echo ""
     echo -e "${YELLOW}Autor Skryptu: Krzysiek Wierciuch (Hulig1n19)${RESET}"
     echo ""
-    echo -e "${RED}Godzina Utworzenia Skryptu: 20:14${RESET}"
+    echo -e "${RED}Godzina Utworzenia Skryptu: 01:27${RESET}"
     echo ""
-    echo -e "${GREEN}Data Utworzenia Skryptu: 26.01.2026${RESET}"
+    echo -e "${GREEN}Data Utworzenia Skryptu: 30.01.2026${RESET}"
     echo ""
     echo -e "${WHITE}Utworzono Specjalnie Dla: Lenovo M715q Tiny${RESET}"
+    echo ""
 }
 
 arch_logo
