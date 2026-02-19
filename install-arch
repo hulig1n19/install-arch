@@ -142,7 +142,7 @@ fi
 #######################################################################
 
 PACMAN_PKGS=(
-  git base-devel less wget firefox firefox-i18n-pl flatpak power-profiles-daemon
+  git base-devel less wget discover firefox firefox-i18n-pl flatpak power-profiles-daemon
   plasma-nm plasma-pa bluedevil plasma-workspace-wallpapers plasma-browser-integration
   ark p7zip unrar unzip lrzip lzop zip papirus-icon-theme capitaine-cursors
   kdeplasma-addons kdeconnect sshfs noto-fonts-cjk noto-fonts-extra cantarell-fonts hunspell-pl
@@ -223,7 +223,7 @@ fi
 #######################################################################
 
 AUR_PKGS=(
-  heroic-games-launcher opencl-amd xone-dkms arch-update protonplus maliit-framework maliit-keyboard
+  heroic-games-launcher opencl-amd xone-dkms protonplus
 )
 
 for pkg in "${AUR_PKGS[@]}"; do
@@ -234,86 +234,7 @@ done
 
 
 #######################################################################
-# 10. Autostart arch-update (ikona w trayu)
-#######################################################################
-
-info "Konfiguruję autostart arch-update..."
-
-AUTOSTART_FILE="$HOME/.config/autostart/arch-update.desktop"
-
-# Upewnij się, że katalog istnieje
-mkdir -p "$HOME/.config/autostart"
-
-# Tworzymy autostart tylko jeśli nie istnieje
-if [ ! -f "$AUTOSTART_FILE" ]; then
-cat <<EOF > "$AUTOSTART_FILE"
-[Desktop Entry]
-Type=Application
-Exec=arch-update --tray
-Hidden=false
-NoDisplay=false
-X-GNOME-Autostart-enabled=true
-Name=Arch Update
-Comment=Powiadomienia o aktualizacjach systemu (pacman + AUR)
-EOF
-
-    ok "Dodano autostart arch-update."
-else
-    warn "Autostart arch-update już istnieje — pomijam."
-fi
-
-
-#######################################################################
-# 11. Usuwanie Discover z domyślnej listy launcherów KDE Plasma 6
-#######################################################################
-
-info "Usuwam Discover z domyślnej listy launcherów KDE..."
-
-TASKMANAGER_CONFIG="/usr/share/plasma/plasmoids/org.kde.plasma.taskmanager/contents/config/main.xml"
-
-if [ -f "$TASKMANAGER_CONFIG" ]; then
-    if grep -q "applications:org.kde.discover.desktop" "$TASKMANAGER_CONFIG"; then
-        info "Znaleziono wpis Discover — usuwam..."
-
-        # Usuwanie wszystkich wariantów wpisu Discover
-        sudo sed -i 's/applications:org.kde.discover.desktop,//g' "$TASKMANAGER_CONFIG"
-        sudo sed -i 's/,applications:org.kde.discover.desktop//g' "$TASKMANAGER_CONFIG"
-        sudo sed -i 's/applications:org.kde.discover.desktop//g' "$TASKMANAGER_CONFIG"
-
-        ok "Discover został usunięty z domyślnej listy launcherów."
-    else
-        warn "Discover nie znajduje się na liście launcherów — pomijam."
-    fi
-else
-    warn "Plik konfiguracyjny Task Manager nie istnieje: $TASKMANAGER_CONFIG"
-fi
-
-#######################################################################
-# 12. SDDM — dodanie bloku tylko jeśli go nie ma
-#######################################################################
-
-info "Konfiguruję SDDM..."
-
-SDDM_FILE="/etc/sddm.conf"
-SDDM_BLOCK=$'[General]\nInputMethod=qtvirtualkeyboard\n\n[Theme]\nCurrent=breeze'
-
-sudo touch "$SDDM_FILE"
-
-if grep -Fq "[General]" "$SDDM_FILE" &&
-   grep -Fq "InputMethod=qtvirtualkeyboard" "$SDDM_FILE" &&
-   grep -Fq "[Theme]" "$SDDM_FILE" &&
-   grep -Fq "Current=breeze" "$SDDM_FILE"; then
-    warn "Blok SDDM już istnieje."
-else
-    info "Dodaję blok SDDM..."
-    sudo sed -i ':a;/^\s*$/{$d;N;ba}' "$SDDM_FILE"
-    printf "%s\n" "$SDDM_BLOCK" | sudo tee -a "$SDDM_FILE" >/dev/null
-    ok "Blok SDDM dodany."
-fi
-
-
-#######################################################################
-# 13. mkinitcpio — dodanie amdgpu bez duplikatów
+# 10. mkinitcpio — dodanie amdgpu bez duplikatów
 #######################################################################
 
 info "Konfiguruję mkinitcpio..."
@@ -355,7 +276,7 @@ fi
 
 
 #######################################################################
-# 14. systemd-boot — ustawienie timeout 0
+# 11. systemd-boot — ustawienie timeout 0
 #######################################################################
 
 info "Ustawiam timeout 0 w systemd-boot..."
@@ -372,7 +293,7 @@ fi
 
 
 #######################################################################
-# 15. Gamemode — konfiguracja
+# 12. Gamemode — konfiguracja
 #######################################################################
 
 info "Konfiguruję gamemode..."
@@ -432,7 +353,7 @@ fi
 
 
 #######################################################################
-# 16. Czyszczenie cache
+# 13. Czyszczenie cache
 #######################################################################
 
 info "Czyszczę cache pacmana i yay..."
@@ -442,7 +363,7 @@ ok "Cache wyczyszczony."
 
 
 #######################################################################
-# 17. Finalna aktualizacja
+# 14. Finalna aktualizacja
 #######################################################################
 
 info "Finalna aktualizacja systemu..."
