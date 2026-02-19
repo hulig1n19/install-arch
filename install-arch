@@ -223,7 +223,7 @@ fi
 #######################################################################
 
 AUR_PKGS=(
-  heroic-games-launcher opencl-amd xone-dkms protonplus
+  heroic-games-launcher opencl-amd xone-dkms protonplus maliit-framework maliit-keyboard
 )
 
 for pkg in "${AUR_PKGS[@]}"; do
@@ -234,7 +234,31 @@ done
 
 
 #######################################################################
-# 10. mkinitcpio — dodanie amdgpu bez duplikatów
+# 10. SDDM — dodanie bloku tylko jeśli go nie ma
+#######################################################################
+
+info "Konfiguruję SDDM..."
+
+SDDM_FILE="/etc/sddm.conf"
+SDDM_BLOCK=$'[General]\nInputMethod=qtvirtualkeyboard\n\n[Theme]\nCurrent=breeze'
+
+sudo touch "$SDDM_FILE"
+
+if grep -Fq "[General]" "$SDDM_FILE" &&
+   grep -Fq "InputMethod=qtvirtualkeyboard" "$SDDM_FILE" &&
+   grep -Fq "[Theme]" "$SDDM_FILE" &&
+   grep -Fq "Current=breeze" "$SDDM_FILE"; then
+    warn "Blok SDDM już istnieje."
+else
+    info "Dodaję blok SDDM..."
+    sudo sed -i ':a;/^\s*$/{$d;N;ba}' "$SDDM_FILE"
+    printf "%s\n" "$SDDM_BLOCK" | sudo tee -a "$SDDM_FILE" >/dev/null
+    ok "Blok SDDM dodany."
+fi
+
+
+#######################################################################
+# 11. mkinitcpio — dodanie amdgpu bez duplikatów
 #######################################################################
 
 info "Konfiguruję mkinitcpio..."
@@ -276,7 +300,7 @@ fi
 
 
 #######################################################################
-# 11. systemd-boot — ustawienie timeout 0
+# 12. systemd-boot — ustawienie timeout 0
 #######################################################################
 
 info "Ustawiam timeout 0 w systemd-boot..."
@@ -293,7 +317,7 @@ fi
 
 
 #######################################################################
-# 12. Gamemode — konfiguracja
+# 13. Gamemode — konfiguracja
 #######################################################################
 
 info "Konfiguruję gamemode..."
@@ -353,7 +377,7 @@ fi
 
 
 #######################################################################
-# 13. Czyszczenie cache
+# 14. Czyszczenie cache
 #######################################################################
 
 info "Czyszczę cache pacmana i yay..."
@@ -363,7 +387,7 @@ ok "Cache wyczyszczony."
 
 
 #######################################################################
-# 14. Finalna aktualizacja
+# 15. Finalna aktualizacja
 #######################################################################
 
 info "Finalna aktualizacja systemu..."
