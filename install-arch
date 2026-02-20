@@ -41,15 +41,15 @@ arch_logo() {
     echo "=================================="
     echo "     ARCH LINUX - KDE Plasma      "
     echo "     Skrypt Instalacyjny 2026     "
-    echo "           30.01.2026             "
+    echo "           20.02.2026             "
     echo "=================================="
 
     echo ""
     echo -e "${YELLOW}Autor Skryptu: Krzysiek Wierciuch (Hulig1n19)${RESET}"
     echo ""
-    echo -e "${RED}Godzina Utworzenia Skryptu: 01:27${RESET}"
+    echo -e "${RED}Godzina Utworzenia Skryptu: 21:49${RESET}"
     echo ""
-    echo -e "${GREEN}Data Utworzenia Skryptu: 30.01.2026${RESET}"
+    echo -e "${GREEN}Data Utworzenia Skryptu: 20.02.2026${RESET}"
     echo ""
     echo -e "${WHITE}Utworzono Specjalnie Dla: Komputera Stacjonarnego${RESET}"
     echo ""
@@ -142,11 +142,11 @@ fi
 #######################################################################
 
 PACMAN_PKGS=(
-  git base-devel less wget discover firefox firefox-i18n-pl flatpak power-profiles-daemon
+  git base-devel less wget firefox firefox-i18n-pl flatpak power-profiles-daemon
   plasma-nm plasma-pa bluedevil plasma-workspace-wallpapers plasma-browser-integration
-  ark p7zip unrar unzip lrzip lzop zip papirus-icon-theme capitaine-cursors
+  ark p7zip unrar unzip lrzip lzop zip papirus-icon-theme capitaine-cursors opencl-mesa
   kdeplasma-addons kdeconnect sshfs noto-fonts-cjk noto-fonts-extra cantarell-fonts hunspell-pl
-  lact lib32-mesa lib32-vulkan-radeon clinfo kwallet-pam kwalletmanager vim
+  lact lib32-mesa lib32-vulkan-radeon clinfo kwallet-pam kwalletmanager vim discover
   openrgb steam qbittorrent obs-studio elisa thunderbird putty okular filezilla gsmartcontrol
   gwenview kdegraphics-thumbnailers ffmpegthumbs mangohud occt btop spectacle
   kolourpaint gnome-maps gnome-calendar kcalc sweeper vlc vlc-plugins-all scrcpy libreoffice-fresh
@@ -223,7 +223,7 @@ fi
 #######################################################################
 
 AUR_PKGS=(
-  heroic-games-launcher opencl-amd xone-dkms protonplus maliit-framework maliit-keyboard
+  heroic-games-launcher xone-dkms protonplus maliit-framework maliit-keyboard
 )
 
 for pkg in "${AUR_PKGS[@]}"; do
