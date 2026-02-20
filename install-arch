@@ -146,13 +146,13 @@ PACMAN_PKGS=(
   plasma-nm plasma-pa bluedevil plasma-workspace-wallpapers plasma-browser-integration
   ark p7zip unrar unzip lrzip lzop zip papirus-icon-theme capitaine-cursors opencl-mesa
   kdeplasma-addons kdeconnect sshfs noto-fonts-cjk noto-fonts-extra cantarell-fonts hunspell-pl
-  lact lib32-mesa lib32-vulkan-radeon clinfo kwallet-pam kwalletmanager vim discover
+  lact lib32-mesa lib32-vulkan-radeon clinfo kwallet-pam kwalletmanager vim discover dunst
   openrgb steam qbittorrent obs-studio elisa thunderbird putty okular filezilla gsmartcontrol
-  gwenview kdegraphics-thumbnailers ffmpegthumbs mangohud occt btop spectacle
+  gwenview kdegraphics-thumbnailers ffmpegthumbs mangohud occt btop spectacle kclock cmake ninja
   kolourpaint gnome-maps gnome-calendar kcalc sweeper vlc vlc-plugins-all scrcpy libreoffice-fresh
   libreoffice-fresh-pl gnome-disk-utility ntfs-3g exfatprogs dosfstools btrfs-progs xfsprogs f2fs-tools
   wine dosbox gst-plugins-bad gst-plugins-base gst-plugins-good gst-plugins-ugly libgphoto2 samba sane unixodbc wine-gecko wine-mono
-  qt5-virtualkeyboard linux-lts-headers pacman-contrib gamemode gamescope breeze-gtk dolphin-plugins kfind ttf-jetbrains-mono ttf-fira-code dunst cmake ninja kclock
+  linux-lts-headers pacman-contrib gamemode gamescope breeze-gtk dolphin-plugins kfind ttf-jetbrains-mono ttf-fira-code
 )
 
 info "Instalacja pakietów pacman..."
@@ -223,7 +223,7 @@ fi
 #######################################################################
 
 AUR_PKGS=(
-  heroic-games-launcher xone-dkms protonplus maliit-framework maliit-keyboard
+  heroic-games-launcher xone-dkms protonplus
 )
 
 for pkg in "${AUR_PKGS[@]}"; do
@@ -231,30 +231,6 @@ for pkg in "${AUR_PKGS[@]}"; do
     yay -S --noconfirm "$pkg"
   fi
 done
-
-
-#######################################################################
-# 10. SDDM — dodanie bloku tylko jeśli go nie ma
-#######################################################################
-
-info "Konfiguruję SDDM..."
-
-SDDM_FILE="/etc/sddm.conf"
-SDDM_BLOCK=$'[General]\nInputMethod=qtvirtualkeyboard\n\n[Theme]\nCurrent=breeze'
-
-sudo touch "$SDDM_FILE"
-
-if grep -Fq "[General]" "$SDDM_FILE" &&
-   grep -Fq "InputMethod=qtvirtualkeyboard" "$SDDM_FILE" &&
-   grep -Fq "[Theme]" "$SDDM_FILE" &&
-   grep -Fq "Current=breeze" "$SDDM_FILE"; then
-    warn "Blok SDDM już istnieje."
-else
-    info "Dodaję blok SDDM..."
-    sudo sed -i ':a;/^\s*$/{$d;N;ba}' "$SDDM_FILE"
-    printf "%s\n" "$SDDM_BLOCK" | sudo tee -a "$SDDM_FILE" >/dev/null
-    ok "Blok SDDM dodany."
-fi
 
 
 #######################################################################
