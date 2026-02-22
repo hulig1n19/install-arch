@@ -153,7 +153,7 @@ PACMAN_PKGS=(
   libreoffice-fresh-pl gnome-disk-utility ntfs-3g exfatprogs dosfstools btrfs-progs xfsprogs f2fs-tools
   wine dosbox gst-plugins-bad gst-plugins-base gst-plugins-good gst-plugins-ugly libgphoto2 samba sane
   unixodbc wine-gecko wine-mono linux-lts-headers pacman-contrib gamemode gamescope breeze-gtk
-  dolphin-plugins kfind ttf-jetbrains-mono ttf-fira-code dunst
+  dolphin-plugins kfind ttf-jetbrains-mono ttf-fira-code dunst packagekit packagekit-qt6
 )
 
 info "Instalacja pakietów pacman..."
