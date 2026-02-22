@@ -405,10 +405,25 @@ fi
 # 15. Czyszczenie cache
 #######################################################################
 
-info "Czyszczę cache pacmana i yay..."
+info "Czyszczę cache pacmana, yay i flatpaka..."
+
+# Pacman — usuwa stare pakiety z cache
 sudo pacman -Sc --noconfirm >/dev/null 2>&1 || true
+
+# Yay — usuwa cache AUR
 yay -Sc --noconfirm >/dev/null 2>&1 || true
-ok "Cache wyczyszczony."
+
+# Flatpak — usuwa nieużywane runtime’y i zależności
+flatpak uninstall --unused -y >/dev/null 2>&1 || true
+
+# Flatpak — usuwa dane po aplikacjach, które już nie istnieją
+flatpak remove --unused -y >/dev/null 2>&1 || true
+
+# Flatpak — naprawa i czyszczenie repozytoriów (bezpieczne)
+flatpak repair --user -y >/dev/null 2>&1 || true
+flatpak repair --system -y >/dev/null 2>&1 || true
+
+ok "Cache pacmana, yay i flatpaka wyczyszczony."
 
 
 #######################################################################
