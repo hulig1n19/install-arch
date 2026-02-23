@@ -248,7 +248,7 @@ fi
 #######################################################################
 
 AUR_PKGS=(
-  xone-dkms maliit-framework maliit-keyboard
+  xone-dkms
 )
 
 for pkg in "${AUR_PKGS[@]}"; do
