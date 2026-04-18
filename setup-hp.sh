@@ -142,18 +142,48 @@ fi
 #######################################################################
 
 PACMAN_PKGS=(
-  git base-devel less wget firefox firefox-i18n-pl flatpak power-profiles-daemon
+  # Podstawowe narzędzia systemowe
+  git base-devel less wget flatpak power-profiles-daemon pacman-contrib
+
+  # Przeglądarka i język
+  firefox firefox-i18n-pl
+
+  # KDE Plasma + dodatki
   plasma-nm plasma-pa bluedevil plasma-workspace-wallpapers plasma-browser-integration
-  ark p7zip unrar unzip lrzip lzop zip papirus-icon-theme capitaine-cursors discover vulkan-intel
-  kdeplasma-addons kdeconnect sshfs noto-fonts-cjk noto-fonts-extra cantarell-fonts hunspell-pl
-  lib32-mesa lib32-vulkan-intel clinfo kwallet-pam kwalletmanager vim kclock cmake ninja
-  openrgb steam qbittorrent obs-studio elisa thunderbird putty okular filezilla gsmartcontrol
-  gwenview kdegraphics-thumbnailers ffmpegthumbs mangohud occt btop spectacle qt5-virtualkeyboard
-  kolourpaint gnome-maps gnome-calendar kcalc sweeper vlc vlc-plugins-all scrcpy libreoffice-fresh
-  libreoffice-fresh-pl gnome-disk-utility ntfs-3g exfatprogs dosfstools btrfs-progs xfsprogs f2fs-tools
-  wine dosbox gst-plugins-bad gst-plugins-base gst-plugins-good gst-plugins-ugly libgphoto2 samba sane
-  unixodbc wine-gecko wine-mono linux-lts-headers pacman-contrib gamemode gamescope breeze-gtk
-  dolphin-plugins kfind ttf-jetbrains-mono ttf-fira-code dunst lutris
+  kdeplasma-addons kdeconnect dolphin-plugins kfind breeze-gtk
+
+  # Archiwa i kompresja
+  ark p7zip unrar unzip lrzip lzop zip
+
+  # Ikony, kursory, czcionki
+  papirus-icon-theme capitaine-cursors noto-fonts-cjk noto-fonts-extra cantarell-fonts
+  ttf-jetbrains-mono ttf-fira-code
+
+  # Multimedia i grafika
+  gwenview kdegraphics-thumbnailers ffmpegthumbs kolourpaint spectacle vlc vlc-plugins-all
+
+  # Narzędzia systemowe i diagnostyczne
+  gsmartcontrol gnome-disk-utility ntfs-3g exfatprogs dosfstools btrfs-progs xfsprogs f2fs-tools
+  clinfo kwallet-pam kwalletmanager sweeper btop
+
+  # Programy użytkowe
+  elisa putty okular filezilla libreoffice-fresh libreoffice-fresh-pl gnome-maps gnome-calendar
+  kcalc scrcpy
+
+  # Programowanie i dev
+  cmake ninja vim
+
+  # Vulkan / Mesa / sterowniki
+  vulkan-intel lib32-mesa lib32-vulkan-intel
+
+  # Emulacja i gry
+  wine wine-gecko wine-mono dosbox gamemode gamescope lutris mangohud
+
+  # Sieć i protokoły
+  sshfs samba sane unixodbc libgphoto2
+
+  # Inne
+  occt dunst
 )
 
 info "Instalacja pakietów pacman..."
