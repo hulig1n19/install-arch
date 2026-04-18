@@ -143,14 +143,14 @@ fi
 
 PACMAN_PKGS=(
   # Podstawowe narzędzia systemowe
-  git base-devel less wget flatpak power-profiles-daemon pacman-contrib
+  git base-devel less wget flatpak power-profiles-daemon pacman-contrib discover
 
   # Przeglądarka i język
-  firefox firefox-i18n-pl
+  firefox firefox-i18n-pl hunspell-pl
 
   # KDE Plasma + dodatki
   plasma-nm plasma-pa bluedevil plasma-workspace-wallpapers plasma-browser-integration
-  kdeplasma-addons kdeconnect dolphin-plugins kfind breeze-gtk
+  kdeplasma-addons kdeconnect dolphin-plugins kfind breeze-gtk qt5-virtualkeyboard
 
   # Archiwa i kompresja
   ark p7zip unrar unzip lrzip lzop zip
@@ -161,10 +161,11 @@ PACMAN_PKGS=(
 
   # Multimedia i grafika
   gwenview kdegraphics-thumbnailers ffmpegthumbs kolourpaint spectacle vlc vlc-plugins-all
+  gst-plugins-bad gst-plugins-base gst-plugins-good gst-plugins-ugly
 
   # Narzędzia systemowe i diagnostyczne
   gsmartcontrol gnome-disk-utility ntfs-3g exfatprogs dosfstools btrfs-progs xfsprogs f2fs-tools
-  clinfo kwallet-pam kwalletmanager sweeper btop
+  clinfo kwallet-pam kwalletmanager sweeper btop occt
 
   # Programy użytkowe
   elisa putty okular filezilla libreoffice-fresh libreoffice-fresh-pl gnome-maps gnome-calendar
@@ -174,7 +175,7 @@ PACMAN_PKGS=(
   cmake ninja vim
 
   # Vulkan / Mesa / sterowniki
-  vulkan-intel lib32-mesa lib32-vulkan-intel
+  vulkan-intel lib32-mesa lib32-vulkan-intel linux-lts-headers
 
   # Emulacja i gry
   wine wine-gecko wine-mono dosbox gamemode gamescope lutris mangohud
@@ -183,8 +184,9 @@ PACMAN_PKGS=(
   sshfs samba sane unixodbc libgphoto2
 
   # Inne
-  occt dunst
+  dunst
 )
+
 
 info "Instalacja pakietów pacman..."
 for pkg in "${PACMAN_PKGS[@]}"; do
