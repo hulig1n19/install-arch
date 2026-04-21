@@ -39,12 +39,28 @@ sleep 1
 
 info "Konfiguruję repozytorium jupiter..."
 if ! grep -q "\[jupiter\]" /etc/pacman.conf; then
-    printf "\n[jupiter]\nSigLevel = PackageOptional\nServer = https://steamdeck-packages.steamos.cloud/archlinux-mirror/\$repo/os/\$arch\n" | sudo tee -a /etc/pacman.conf >/dev/null
+    # Używamy pojedynczych cudzysłowów wokół całego bloku, aby Bash nie usuwał znaków $
+    sudo bash -c 'cat >> /etc/pacman.conf <<EOF
+
+[jupiter]
+SigLevel = PackageOptional
+Server = https://steamdeck-packages.steamos.cloud/archlinux-mirror/\$repo/os/\$arch
+EOF'
 fi
 
+# Synchronizacja baz danych
 sudo pacman -Sy --noconfirm
-if ! command -v reflector >/dev/null; then sudo pacman -S --noconfirm reflector; fi
+
+# Konfiguracja Reflector (Twoje lustra)
+info "Optymalizuję listę mirrorów (Reflector)..."
+if ! command -v reflector >/dev/null; then 
+    sudo pacman -S --noconfirm reflector
+fi
+
 sudo reflector --country Poland,Germany --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+
+ok "Repozytoria i mirrory skonfigurowane pomyślnie."
+
 
 #######################################################################
 # 2. Główna lista pakietów (Twoje aplikacje + System - BEZ DUPLIKATÓW)
