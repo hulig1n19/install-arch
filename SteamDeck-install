@@ -1,0 +1,172 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+#######################################################################
+# Kolory + funkcje komunikatów
+#######################################################################
+
+WHITE="\e[97m"
+RED="\e[31m"
+GREEN="\e[32m"
+YELLOW="\e[33m"
+BLUE="\e[34m"
+CYAN="\e[36m"
+RESET="\e[0m"
+
+info()    { echo -e "${BLUE}[INFO]${RESET} $1"; }
+ok()      { echo -e "${GREEN}[OK]${RESET} $1"; }
+warn()    { echo -e "${YELLOW}[WARN]${RESET} $1"; }
+
+arch_logo() {
+    echo -e "${CYAN}"
+    echo "=================================="
+    echo "     ARCH LINUX - STEAM DECK      "
+    echo "     KDE PLASMA + GAME MODE       "
+    echo "          Edycja 2026             "
+    echo "=================================="
+    echo ""
+    echo -e "${YELLOW}Autor: Krzysiek Wierciuch (Hulig1n19)${RESET}"
+    echo -e "${WHITE}Tryb: Wayland | Timeout: 0${RESET}"
+    echo ""
+}
+
+arch_logo
+sleep 1
+
+#######################################################################
+# 1. Repozytoria i Aktualizacja
+#######################################################################
+
+info "Konfiguruję repozytorium jupiter..."
+if ! grep -q "\[jupiter\]" /etc/pacman.conf; then
+    printf "\n[jupiter]\nSigLevel = PackageOptional\nServer = https://steamdeck-packages.steamos.cloud/archlinux-mirror/\$repo/os/\$arch\n" | sudo tee -a /etc/pacman.conf >/dev/null
+fi
+
+sudo pacman -Sy --noconfirm
+if ! command -v reflector >/dev/null; then sudo pacman -S --noconfirm reflector; fi
+sudo reflector --country Poland,Germany --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+
+#######################################################################
+# 2. Główna lista pakietów (Twoje aplikacje + System - BEZ DUPLIKATÓW)
+#######################################################################
+
+PACMAN_PKGS=(
+  # --- SYSTEM CORE & KDE ---
+  base-devel git wget nano vim sddm sddm-kcm plasma-desktop konsole dolphin kate
+  plasma-nm plasma-pa bluedevil plasma-workspace-wallpapers plasma-browser-integration
+  kscreen kdeplasma-addons kdeconnect kwallet-pam kwalletmanager discover
+  plasma-wayland-protocols qt6-wayland qt5-wayland xorg-xwayland
+
+  # --- MULTIMEDIA & NARZĘDZIA ---
+  vlc vlc-plugins-all elisa okular gwenview kolourpaint spectacle
+  kdegraphics-thumbnailers ffmpegthumbs mangohud btop papirus-icon-theme
+  capitaine-cursors breeze-gtk qt5-virtualkeyboard firefox firefox-i18n-pl
+  qbittorrent scrcpy gnome-maps gnome-calendar kcalc sweeper gnome-disk-utility
+  ark p7zip unrar unzip lrzip lzop zip kfind dunst
+
+  # --- GRY & KOMPATYBILNOŚĆ ---
+  steam lutris gamemode gamescope wine wine-gecko wine-mono dosbox
+  gst-plugins-bad gst-plugins-base gst-plugins-good gst-plugins-ugly
+  libgphoto2 samba sane unixodbc lact flatpak power-profiles-daemon
+
+  # --- STEROWNIKI STEAM DECK ---
+  linux-neptune linux-neptune-headers jupiter-hw-support jupiter-fan-control
+  steamdeck-dsp pipewire pipewire-alsa pipewire-pulse wireplumber lib32-pipewire
+  lib32-mesa lib32-vulkan-radeon opencl-mesa clinfo
+
+  # --- SYSTEMY PLIKÓW & CZCIONKI ---
+  ntfs-3g exfatprogs dosfstools btrfs-progs xfsprogs f2fs-tools pacman-contrib
+  noto-fonts-cjk noto-fonts-extra cantarell-fonts ttf-jetbrains-mono ttf-fira-code
+  hunspell-pl cmake ninja
+)
+
+info "Instaluję wszystkie pakiety..."
+sudo pacman -S --needed --noconfirm "${PACMAN_PKGS[@]}"
+
+#######################################################################
+# 3. AUR & FLATPAK
+#######################################################################
+
+sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+flatpak install -y flathub com.vysp3r.ProtonPlus
+
+if ! command -v yay >/dev/null; then
+  git clone https://aur.archlinux.org/yay.git /tmp/yay
+  cd /tmp/yay && makepkg -si --noconfirm && cd -
+fi
+
+info "Instaluję paczki AUR..."
+AUR_DECK=(xone-dkms decky-loader-bin gamescope-session-steam-bin gamescope-session-plus-bin)
+yay -S --needed --noconfirm "${AUR_DECK[@]}"
+
+#######################################################################
+# 4. Konfiguracja Logowania (Tryb Gry)
+#######################################################################
+
+sudo mkdir -p /etc/sddm.conf.d/
+cat <<EOF | sudo tee /etc/sddm.conf.d/autologin.conf >/dev/null
+[Autologin]
+User=krzysiek-wierciuch
+Session=gamescope
+EOF
+
+cat <<EOF | sudo tee /etc/sddm.conf.d/wayland.conf >/dev/null
+[General]
+DisplayServer=wayland
+InputMethod=qtvirtualkeyboard
+[Theme]
+Current=breeze
+EOF
+
+sudo systemctl enable sddm
+
+#######################################################################
+# 5. Fix Ekranu & Usługi
+#######################################################################
+
+mkdir -p ~/.config/plasma-workspace/env/
+cat <<EOF > ~/.config/plasma-workspace/env/screen_fix.sh
+#!/bin/bash
+kscreen-doctor output.eDP-1.rotation.right
+EOF
+chmod +x ~/.config/plasma-workspace/env/screen_fix.sh
+
+sudo systemctl enable --now power-profiles-daemon
+sudo systemctl enable --now lactd
+sudo systemctl --global enable pipewire.socket wireplumber.service
+
+# Early KMS
+sudo sed -i 's/^MODULES=(.*/MODULES=(amdgpu)/' /etc/mkinitcpio.conf
+sudo mkinitcpio -P
+
+# TIMEOUT 0 - Na Twoje życzenie
+if [ -f /boot/loader/loader.conf ]; then
+    sudo sed -i -e 's/timeout.*/timeout 0/' /boot/loader/loader.conf
+fi
+
+#######################################################################
+# 6. Gamemode & Finał
+#######################################################################
+
+GAMEMODE_CFG="/etc/gamemode.ini"
+if [ ! -f "$GAMEMODE_CFG" ]; then
+    sudo touch "$GAMEMODE_CFG"
+    cat <<EOF | sudo tee "$GAMEMODE_CFG" >/dev/null
+[general]
+renice=10
+[cpu]
+governor=performance
+[gpu]
+apply_gpu_optimisations=accept-responsibility
+gpu_device=0
+EOF
+fi
+
+info "Czyszczenie..."
+sudo pacman -Sc --noconfirm
+yay -Sc --noconfirm
+flatpak uninstall --unused -y
+
+ok "GOTOWE! Restart za 10 sekund (Timeout 0)."
+sleep 10
+sudo systemctl reboot
