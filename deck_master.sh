@@ -115,11 +115,24 @@ fi
 
 info "Instalacja oficjalnych sterowników sprzętowych Steam Decka..."
 if ! pacman -Qi jupiter-hw-support >/dev/null 2>&1; then
-    info "Pobieranie pakietów do cache (tylko pobieranie)..."
-    sudo pacman -Sw --noconfirm jupiter-main/jupiter-hw-support jupiter-main/jupiter-fan-control jupiter-main/steamdeck-dsp
+    info "Pobieranie pakietów za pomocą wget (całkowite ominięcie sprawdzania pacmana)..."
 
-    info "Wymuszanie instalacji z plików lokalnych bez zależności..."
-    sudo pacman -U --noconfirm --nodeps /var/cache/pacman/pkg/jupiter-hw-support-*.pkg.tar.zst /var/cache/pacman/pkg/jupiter-fan-control-*.pkg.tar.zst /var/cache/pacman/pkg/steamdeck-dsp-*.pkg.tar.zst
+    # Tworzymy tymczasowy folder na pakiety
+    mkdir -p /tmp/steamdeck_drivers
+    cd /tmp/steamdeck_drivers
+
+    # Pobieramy najświeższe wersje paczek bezpośrednio z serwera Valve
+    wget -q --show-progress https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/jupiter-hw-support-3.6.1-1-x86_64.pkg.tar.zst || wget -q --show-progress https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/jupiter-hw-support-*.pkg.tar.zst
+    wget -q --show-progress https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/jupiter-fan-control-2.1-1-any.pkg.tar.zst || wget -q --show-progress https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/jupiter-fan-control-*.pkg.tar.zst
+    wget -q --show-progress https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/steamdeck-dsp-0.49-1-x86_64.pkg.tar.zst || wget -q --show-progress https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/steamdeck-dsp-*.pkg.tar.zst
+
+    info "Wymuszanie instalacji z plików lokalnych bez sprawdzania zależności..."
+    # Instalacja pobranych plików na bezczelnego za pomocą -U oraz --nodeps
+    sudo pacman -U --noconfirm --nodeps jupiter-hw-support-*.pkg.tar.zst jupiter-fan-control-*.pkg.tar.zst steamdeck-dsp-*.pkg.tar.zst
+
+    # Powrót do poprzedniego katalogu i czyszczenie
+    cd - >/dev/null
+    rm -rf /tmp/steamdeck_drivers
     ok "Sterowniki sprzętowe zainstalowane pomyślnie z flagą --nodeps."
 else
     warn "Sterowniki sprzętowe są już zainstalowane."
