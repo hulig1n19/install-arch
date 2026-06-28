@@ -80,52 +80,6 @@ sudo pacman -Syu --noconfirm
 ok "System zaktualizowany."
 
 #######################################################################
-# 2. Instalacja dedykowanego Jądra i Sterowników Steam Decka (Ważne!)
-#######################################################################
-
-info "Instalacja jądra linux-neptune (od Valve)..."
-if ! pacman -Qi linux-neptune >/dev/null 2>&1; then
-    sudo pacman -S --noconfirm jupiter-main/linux-neptune jupiter-main/linux-neptune-headers
-    ok "Jądro Neptune zainstalowane."
-else
-    warn "Jądro Neptune jest już zainstalowane."
-fi
-
-info "Instalacja oficjalnych sterowników sprzętowych Steam Decka..."
-if ! pacman -Qi jupiter-hw-support >/dev/null 2>&1; then
-    info "Pobieranie oficjalnych pakietów za pomocą curl..."
-
-    # Tworzymy czysty tymczasowy folder na pakiety
-    rm -rf /tmp/steamdeck_drivers
-    mkdir -p /tmp/steamdeck_drivers
-    cd /tmp/steamdeck_drivers
-
-    # Pobieramy konkretne, stabilne wersje bezpośrednio przez jednoznaczne URL
-    curl -L -O https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/jupiter-hw-support-3.6.1-1-x86_64.pkg.tar.zst
-    curl -L -O https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/jupiter-fan-control-2.1-1-any.pkg.tar.zst
-    curl -L -O https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/steamdeck-dsp-0.49-1-x86_64.pkg.tar.zst
-
-    info "Wymuszanie instalacji pakietów sprzętowych bez sprawdzania zależności (--nodeps)..."
-    # Instalacja z pominięciem sprawdzania zależności (rozwiązuje problem z python i noisetorch)
-    sudo pacman -U --noconfirm --nodeps jupiter-hw-support-3.6.1-1-x86_64.pkg.tar.zst jupiter-fan-control-2.1-1-any.pkg.tar.zst steamdeck-dsp-0.49-1-x86_64.pkg.tar.zst
-
-    # Powrót do poprzedniego katalogu i czyszczenie plików tymczasowych
-    cd - >/dev/null
-    rm -rf /tmp/steamdeck_drivers
-    ok "Sterowniki sprzętowe zainstalowane pomyślnie z flagą --nodeps."
-else
-    warn "Sterowniki sprzętowe są już zainstalowane."
-fi
-
-info "Zabezpieczanie sterowników przed konfliktami (IgnorePkg)..."
-if ! grep -q "^IgnorePkg.*jupiter-hw-support" /etc/pacman.conf; then
-    sudo sed -i 's/#IgnorePkg =/IgnorePkg = jupiter-hw-support jupiter-fan-control steamdeck-dsp linux-neptune linux-neptune-headers/' /etc/pacman.conf
-    ok "Pakiety zablokowane w pacman.conf przed uszkodzeniem przy ogólnych aktualizacjach."
-else
-    warn "Blokada IgnorePkg już skonfigurowana."
-fi
-
-#######################################################################
 # 3. Instalacja Plasma Desktop + SDDM (bez duplikatów)
 #######################################################################
 
@@ -254,7 +208,7 @@ if ! pacman -Qi gamescope-session-git >/dev/null 2>&1; then
     yay -S --noconfirm gamescope-session-git gamescope-session-steam-git
     ok "Sesja Gamescope (Gaming Mode) zainstalowana."
 else
-    warn "Sesja Gamescope already exists."
+    warn "Sesja Gamescope już istnieje."
 fi
 
 #######################################################################
@@ -309,7 +263,7 @@ else
     INITRAMFS_CHANGED=1
 fi
 
-info "Generowanie initramfs dla jądra linux-neptune..."
+info "Generowanie initramfs..."
 sudo mkinitcpio -P
 ok "Initramfs przebudowany."
 
@@ -328,7 +282,7 @@ fi
 
 if [ -f /boot/grub/grub.cfg ]; then
     sudo grub-mkconfig -o /boot/grub/grub.cfg
-    ok "Konfiguracja GRUB zaktualizowana pod jądro Neptune."
+    ok "Konfiguracja GRUB zaktualizowana."
 fi
 
 #######################################################################
