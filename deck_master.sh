@@ -131,7 +131,7 @@ PACMAN_PKGS=(
   lib32-mesa lib32-vulkan-radeon clinfo kwallet-pam kwalletmanager vim kclock cmake ninja
   steam okular
   gwenview kdegraphics-thumbnailers ffmpegthumbs mangohud btop spectacle qt5-virtualkeyboard
-  kcalc sweeper vlc vlc-plugins-all scrcpy gnome-disk-utility ntfs-3g exfatprogs dosfstools btrfs-progs xfsprogs f2fs-tools
+  kcalc sweeper gnome-disk-utility ntfs-3g exfatprogs dosfstools btrfs-progs xfsprogs f2fs-tools
   wine dosbox gst-plugins-bad gst-plugins-base gst-plugins-good gst-plugins-ugly libgphoto2 samba sane
   unixodbc wine-gecko wine-mono gamemode gamescope breeze-gtk
   dolphin-plugins kfind ttf-jetbrains-mono ttf-fira-code dunst
@@ -162,26 +162,6 @@ fi
 
 info "Wymuszam język polski w aplikacjach Flatpak..."
 flatpak config --set languages pl || true
-
-#######################################################################
-# 7. Aplikacje Flatpak
-#######################################################################
-
-FLATPAK_APPS=(
-  com.vysp3r.ProtonPlus
-)
-
-info "Instaluję aplikacje Flatpak..."
-for app in "${FLATPAK_APPS[@]}"; do
-  if ! flatpak list | grep -q "$app"; then
-    info "Instaluję: $app"
-    flatpak install -y flathub "$app"
-    ok "$app zainstalowany."
-  else
-    warn "Pominięto — $app już jest."
-  fi
-done
-ok "Aplikacje Flatpak zainstalowane."
 
 #######################################################################
 # 8. Instalacja yay
@@ -321,13 +301,9 @@ fi
 # 14. Czyszczenie cache
 #######################################################################
 
-info "Czyszczę cache pacmana, yay i flatpaka..."
+info "Czyszczę cache pacmana, i yay..."
 sudo pacman -Sc --noconfirm >/dev/null 2>&1 || true
 yay -Sc --noconfirm >/dev/null 2>&1 || true
-flatpak uninstall --unused -y >/dev/null 2>&1 || true
-flatpak remove --unused -y >/dev/null 2>&1 || true
-flatpak repair --user -y >/dev/null 2>&1 || true
-flatpak repair --system -y >/dev/null 2>&1 || true
 ok "Cache wyczyszczony."
 
 #######################################################################
