@@ -4,19 +4,26 @@ set -euo pipefail
 #######################################################################
 # Kolory + funkcje komunikatów + pasek postępu
 #######################################################################
-WHITE="\e[97m"; RED="\e[31m"; GREEN="\e[32m"; YELLOW="\e[33m"
-BLUE="\e[34m"; CYAN="\e[36m"; MAGENTA="\e[35m"; RESET="\e[0m"
 
-info() { echo -e "${BLUE}[INFO]${RESET} $1"; }
-ok()   { echo -e "${GREEN}[OK]${RESET} $1"; }
-warn() { echo -e "${YELLOW}[WARN]${RESET} $1"; }
-error() { echo -e "${RED}[ERROR]${RESET} $1"; }
+WHITE="\e[97m"
+RED="\e[31m"
+GREEN="\e[32m"
+YELLOW="\e[33m"
+BLUE="\e[34m"
+CYAN="\e[36m"
+RESET="\e[0m"
+
+info()    { echo -e "${BLUE}[INFO]${RESET} $1"; }
+ok()      { echo -e "${GREEN}[OK]${RESET} $1"; }
+warn()    { echo -e "${YELLOW}[WARN]${RESET} $1"; }
+error()   { echo -e "${RED}[ERROR]${RESET} $1"; }
 
 progress_bar() {
     local duration=$1
     local i=0
+    local bar=""
     while [ $i -le $duration ]; do
-        local bar=$(printf "%-${i}s" "#" | tr ' ' '#')
+        bar=$(printf "%-${i}s" "#" | tr ' ' '#')
         printf "\r${CYAN}[%s%-${duration}s]${RESET}" "$bar" ""
         sleep 0.05
         i=$((i+1))
@@ -24,223 +31,389 @@ progress_bar() {
     echo ""
 }
 
-if [ "$EUID" -eq 0 ]; then
-    error "Uruchom skrypt BEZ sudo (skrypt sam o nie poprosi)."
-    exit 1
-fi
-
 #######################################################################
-# Banner ARCH LINUX - STEAM DECK EDITION
+# Banner STEAM DECK - ARCH LINUX
 #######################################################################
-clear
-echo -e "${CYAN}=================================="
-echo "    ARCH LINUX - STEAM DECK LCD   "
-echo "    Skrypt Instalacyjny 2026      "
-echo -e "==================================${RESET}"
-echo -e "${YELLOW}Autor: Krzysiek Wierciuch (Hulig1n19)${RESET}"
-echo -e "${WHITE}Przeznaczenie: Steam Deck LCD 512GB${RESET}\n"
 
-#######################################################################
-# 1. Wybór sesji Pulpitu
-#######################################################################
-info "Sprawdzam dostępne sesje..."
-available_desktops=$(ls /usr/share/wayland-sessions/*.desktop 2>/dev/null | sed 's|/usr/share/wayland-sessions/||; s/\.desktop$//' | grep -v 'gamescope' || echo "")
-
-if [ -z "$available_desktops" ]; then
-    warn "Brak zainstalowanego środowiska. Zainstaluję KDE Plasma..."
-    sudo pacman -S --noconfirm plasma-desktop sddm konsole dolphin zenity
-    available_desktops="plasma"
-fi
-
-echo -e "\n${MAGENTA}Wykryte sesje Wayland (Pulpit):${RESET}"
-echo "$available_desktops"
-read -p "Wpisz nazwę sesji (domyślnie: plasma): " selected_de
-selected_de=${selected_de:-plasma}
-
-#######################################################################
-# 2. Optymalizacja Mirrorów i Systemu
-#######################################################################
-info "Aktualizacja mirrorów przez Reflector..."
-if ! pacman -Qi reflector >/dev/null 2>&1; then sudo pacman -S --noconfirm reflector; fi
-sudo reflector --country Poland,Germany --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
-
-info "Pełna aktualizacja systemu..."
-progress_bar 20
-sudo pacman -Syu --noconfirm
-
-#######################################################################
-# 3. Instalacja Pakietów
-#######################################################################
-PACMAN_PKGS=(
-    git base-devel less wget firefox firefox-i18n-pl flatpak zenity jq
-    plasma-nm plasma-pa bluedevil plasma-workspace-wallpapers plasma-browser-integration
-    ark p7zip unrar unzip lrzip lzop zip papirus-icon-theme capitaine-cursors discover opencl-mesa
-    kdeplasma-addons kdeconnect sshfs noto-fonts-cjk noto-fonts-extra cantarell-fonts hunspell-pl
-    lib32-mesa lib32-vulkan-radeon clinfo kwallet-pam kwalletmanager vim kclock cmake ninja
-    steam qbittorrent elisa putty okular gsmartcontrol
-    gwenview kdegraphics-thumbnailers ffmpegthumbs mangohud btop spectacle qt5-virtualkeyboard
-    kolourpaint gnome-maps gnome-calendar kcalc sweeper vlc vlc-plugins-all scrcpy libreoffice-fresh
-    libreoffice-fresh-pl gnome-disk-utility ntfs-3g exfatprogs dosfstools btrfs-progs xfsprogs f2fs-tools
-    wine dosbox gst-plugins-bad gst-plugins-base gst-plugins-good gst-plugins-ugly libgphoto2 samba sane
-    unixodbc wine-gecko wine-mono pacman-contrib gamemode gamescope breeze-gtk
-    dolphin-plugins kfind ttf-jetbrains-mono ttf-fira-code dunst lutris bluez bluez-utils
-)
-
-info "Instalacja pakietów..."
-sudo pacman -S --noconfirm "${PACMAN_PKGS[@]}"
-
-#######################################################################
-# 4. Instalacja YAY (AUR)
-#######################################################################
-if ! command -v yay >/dev/null 2>&1; then
-    info "Instaluję yay..."
-    git clone https://aur.archlinux.org/yay.git /tmp/yay
-    cd /tmp/yay && makepkg -si --noconfirm && cd -
-fi
-info "Instalacja sesji SteamOS..."
-yay -S --noconfirm gamescope-session-steam-git
-
-#######################################################################
-# 5. Konfiguracja SDDM
-#######################################################################
-info "Konfiguruję SDDM..."
-sudo tee /etc/sddm.conf > /dev/null <<EOF
-[Autologin]
-Relogin=true
-Session=gamescope-session-steam
-User=$(whoami)
-
-[General]
-InputMethod=qtvirtualkeyboard
-HaltCommand=/usr/bin/systemctl poweroff
-RebootCommand=/usr/bin/systemctl reboot
-
-[Theme]
-Current=breeze
-EOF
-sudo systemctl enable sddm.service
-
-#######################################################################
-# 6. steamos-session-select (Ulepszony o loginctl)
-#######################################################################
-info "Tworzenie /usr/bin/steamos-session-select..."
-sudo tee /usr/bin/steamos-session-select > /dev/null <<EOF
-#!/usr/bin/bash
-CONFIG_FILE="/etc/sddm.conf"
-if [ "\$1" == "plasma" ] || [ "\$1" == "desktop" ]; then
-    sudo sed -i "s/^Session=.*/Session=$selected_de/" "\$CONFIG_FILE"
-    steam -shutdown
-elif [ "\$1" == "gamescope" ]; then
-    sudo sed -i "s/^Session=.*/Session=gamescope-session-steam/" "\$CONFIG_FILE"
-    loginctl terminate-session \$XDG_SESSION_ID
-fi
-EOF
-sudo chmod +x /usr/bin/steamos-session-select
-
-# Uprawnienia bez hasła do plików konfiguracyjnych i update
-sudo tee /etc/sudoers.d/deckify_all > /dev/null <<EOF
-$(whoami) ALL=(ALL) NOPASSWD: /usr/bin/sed -i s/^Session=*/Session=*/ /etc/sddm.conf
-$(whoami) ALL=(ALL) NOPASSWD: /usr/bin/pacman -Syu --noconfirm
-$(whoami) ALL=(ALL) NOPASSWD: /usr/bin/pacman -S *
-$(whoami) ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart plugin_loader.service
-EOF
-sudo chmod 440 /etc/sudoers.d/deckify_all
-
-#######################################################################
-# 7. Hardware & Gamemode
-#######################################################################
-info "Optymalizacje sprzętowe..."
-sudo systemctl enable --now bluetooth
-sudo tee /etc/gamemode.ini > /dev/null <<EOF
-[general]
-renice=10
-[cpu]
-governor=performance
-[gpu]
-apply_gpu_optimisations=accept-responsibility
-gpu_device=0
-EOF
-
-#######################################################################
-# 8. Tworzenie Narzędzi (Twój Helper + Update + Decky)
-#######################################################################
-info "Budowanie centrum narzędzi arch-deckify..."
-mkdir -p "$HOME/arch-deckify"
-
-# PLIK 1: system_update.sh (Twoja wersja terminalowa)
-cat <<'EOF' > "$HOME/arch-deckify/system_update.sh"
-#!/bin/bash
-UPDATE_CMD="yay -Syu --noconfirm"
-konsole -e bash -c "clear; echo -e '\e[94mAktualizacja systemu...\e[0m'; sudo rm -rf /var/lib/pacman/db.lck; $UPDATE_CMD; flatpak update -y; echo -e '\e[93mGotowe. Zamykanie za 5s...\e[0m'; sleep 5"
-EOF
-
-# PLIK 2: gui_helper.sh (Twoje menu Zenity)
-cat <<'EOF' > "$HOME/arch-deckify/gui_helper.sh"
-#!/bin/bash
-PLUGIN_LOADER_PATH="${HOME}/homebrew"
-ask_sudo() {
-    if sudo -n true 2>/dev/null; then return 0; fi
-    PASSWORD=$(zenity --password --title="Autoryzacja")
-    echo "$PASSWORD" | sudo -S -v >/dev/null 2>&1
+arch_logo() {
+    echo -e "${CYAN}"
+    echo "=================================="
+    echo "     ARCH LINUX - STEAM DECK      "
+    echo "    KDE Plasma + Gaming Mode      "
+    echo "=================================="
+    echo ""
+    echo -e "${YELLOW}Autor Skryptu: Krzysiek Wierciuch (Hulig1n19)${RESET}"
+    echo ""
+    echo -e "${WHITE}Dostosowano Specjalnie Dla: Konsoli Steam Deck${RESET}"
+    echo ""
 }
 
-while true; do
-    allTools=("Run Gamescope" "Tryb Gry w oknie" "Update System" "Aktualizacja wszystkiego" "Install Decky" "Wtyczki Steam")
-    SELECTION=$(zenity --title "Deckify Tools" --list --radiolist --height=400 --width=500 \
-        --column "" --column "Opcja" --column "Opis" \
-        FALSE "${allTools[0]}" "${allTools[1]}" FALSE "${allTools[2]}" "${allTools[3]}" FALSE "${allTools[4]}" "${allTools[5]}")
-    [ $? -ne 0 ] && exit 0
-    case "$SELECTION" in
-        "Run Gamescope") gamescope-session-plus steam ;;
-        "Update System") bash "$HOME/arch-deckify/system_update.sh" ;;
-        "Install Decky") 
-            ask_sudo
-            curl -L https://github.com/SteamDeckHomebrew/decky-installer/releases/latest/download/install_release.sh | sh
-            sudo sed -i 's~TimeoutStopSec=.*$~TimeoutStopSec=2~g' /etc/systemd/system/plugin_loader.service
-            sudo systemctl daemon-reload && sudo systemctl restart plugin_loader.service
-            zenity --info --text="Decky zainstalowany i zoptymalizowany!" ;;
-    esac
+arch_logo
+sleep 1
+
+#######################################################################
+# 0. Dodanie repozytorium Valve (JUPITER) i kluczy
+#######################################################################
+
+info "Konfiguracja repozytorium jupiter-main od Valve..."
+
+if ! grep -q "\[jupiter-main\]" /etc/pacman.conf; then
+    sudo bash -c 'cat << EOF >> /etc/pacman.conf
+
+[jupiter-main]
+Server = https://steamdeck-packages.steamos.cloud/archlinux-mirror/\$repo/os/\$arch
+SigLevel = Never
+EOF'
+    ok "Repozytorium jupiter-main dodane do pacman.conf."
+else
+    warn "Repozytorium jupiter-main już istnieje."
+fi
+
+#######################################################################
+# 1. Aktualizacja baz danych i systemu
+#######################################################################
+
+info "Aktualizacja baz danych pacmana i systemu..."
+progress_bar 20
+sudo pacman -Sy
+sudo pacman -Syu --noconfirm
+ok "System zaktualizowany."
+
+#######################################################################
+# 2. Optymalizacja mirrorów przez reflector
+#######################################################################
+
+info "Sprawdzam reflector..."
+if ! pacman -Qi reflector >/dev/null 2>&1; then
+    info "Instaluję reflector..."
+    sudo pacman -S --noconfirm reflector
+    ok "reflector zainstalowany."
+else
+    warn "reflector już jest — pomijam instalację."
+fi
+
+if ! grep -q "Generated by Reflector" /etc/pacman.d/mirrorlist 2>/dev/null; then
+    info "Optymalizuję mirrory (Polska + Niemcy)..."
+    sudo reflector --country Poland,Germany --age 12 --protocol https --sort rate \
+        --save /etc/pacman.d/mirrorlist
+    ok "Mirrory zzoptymalizowane."
+else
+    warn "Mirrory już były zoptymalizowane — pomijam."
+fi
+
+#######################################################################
+# 3. Instalacja dedykowanego Jądra i Sterowników Steam Decka (Ważne!)
+#######################################################################
+
+info "Instalacja jądra linux-neptune (od Valve)..."
+if ! pacman -Qi linux-neptune >/dev/null 2>&1; then
+    sudo pacman -S --noconfirm jupiter-main/linux-neptune jupiter-main/linux-neptune-headers
+    ok "Jądro Neptune zainstalowane."
+else
+    warn "Jądro Neptune jest już zainstalowane."
+fi
+
+info "Instalacja oficjalnych sterowników sprzętowych Steam Decka..."
+if ! pacman -Qi jupiter-hw-support >/dev/null 2>&1; then
+    info "Pobieranie pakietów do cache (tylko pobieranie)..."
+    sudo pacman -Sw --noconfirm jupiter-main/jupiter-hw-support jupiter-main/jupiter-fan-control jupiter-main/steamdeck-dsp
+
+    info "Wymuszanie instalacji z plików lokalnych bez zależności..."
+    sudo pacman -U --noconfirm --nodeps /var/cache/pacman/pkg/jupiter-hw-support-*.pkg.tar.zst /var/cache/pacman/pkg/jupiter-fan-control-*.pkg.tar.zst /var/cache/pacman/pkg/steamdeck-dsp-*.pkg.tar.zst
+    ok "Sterowniki sprzętowe zainstalowane pomyślnie z flagą --nodeps."
+else
+    warn "Sterowniki sprzętowe są już zainstalowane."
+fi
+
+info "Zabezpieczanie sterowników przed konfliktami (IgnorePkg)..."
+if ! grep -q "^IgnorePkg.*jupiter-hw-support" /etc/pacman.conf; then
+    sudo sed -i 's/#IgnorePkg =/IgnorePkg = jupiter-hw-support jupiter-fan-control steamdeck-dsp linux-neptune linux-neptune-headers/' /etc/pacman.conf
+    ok "Pakiety zablokowane w pacman.conf przed uszkodzeniem przy ogólnych aktualizacjach."
+else
+    warn "Blokada IgnorePkg już skonfigurowana."
+fi
+
+#######################################################################
+# 4. Instalacja Plasma Desktop + SDDM (bez duplikatów)
+#######################################################################
+
+info "Instaluję Plasma Desktop i komponenty KDE..."
+
+PLASMA_PKGS=(
+  plasma-desktop
+  kde-gtk-config
+  konsole
+  dolphin
+  kate
+  nano
+  kscreen
+  sddm
+  sddm-kcm
+)
+
+for pkg in "${PLASMA_PKGS[@]}"; do
+  if ! pacman -Qi "$pkg" >/dev/null 2>&1; then
+    info "Instaluję: $pkg"
+    sudo pacman -S --noconfirm "$pkg"
+  else
+    warn "Pominięto — $pkg już jest."
+  fi
 done
-EOF
-
-chmod +x "$HOME/arch-deckify/"*.sh
+ok "Plasma Desktop i komponenty KDE zainstalowane."
 
 #######################################################################
-# 9. Skróty Pulpitu
+# 5. Włączenie menedżera logowania SDDM
 #######################################################################
-info "Tworzenie ikon na pulpicie..."
-DESKTOP_DIR="$HOME/Desktop"
-mkdir -p "$DESKTOP_DIR"
 
-wget -q -O "$HOME/arch-deckify/icon.png" https://raw.githubusercontent.com/unlbslk/arch-deckify/refs/heads/main/icons/steam-gaming-return.png || true
-
-cat <<EOF > "$DESKTOP_DIR/Return_to_Gaming_Mode.desktop"
-[Desktop Entry]
-Name=Return to Gaming Mode
-Exec=steamos-session-select gamescope
-Icon=steam
-Terminal=false
-Type=Application
-EOF
-
-cat <<EOF > "$DESKTOP_DIR/Deckify_Tools.desktop"
-[Desktop Entry]
-Name=Deckify Tools
-Exec=$HOME/arch-deckify/gui_helper.sh
-Icon=utilities-terminal
-Terminal=false
-Type=Application
-EOF
-
-chmod +x "$DESKTOP_DIR"/*.desktop
+info "Włączam SDDM..."
+if ! systemctl is-enabled --quiet sddm 2>/dev/null; then
+    sudo systemctl enable sddm
+    ok "SDDM włączony."
+else
+    warn "SDDM już jest włączony."
+fi
 
 #######################################################################
-# 10. Finalizacja
+# 6. Instalacja pakietów pacman (Dostosowane pod Steam Decka)
 #######################################################################
-info "Instalacja ProtonPlus..."
-flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-flatpak install --user -y flathub com.vysp3r.ProtonPlus
 
-ok "INSTALACJA ZAKOŃCZONA!"
-sleep 5
-sudo reboot
+PACMAN_PKGS=(
+  git base-devel less wget firefox firefox-i18n-pl flatpak power-profiles-daemon
+  plasma-nm plasma-pa bluedevil plasma-workspace-wallpapers plasma-browser-integration
+  ark p7zip unrar unzip lrzip lzop zip papirus-icon-theme capitaine-cursors discover opencl-mesa
+  kdeplasma-addons kdeconnect sshfs noto-fonts-cjk noto-fonts-extra cantarell-fonts hunspell-pl
+  lib32-mesa lib32-vulkan-radeon clinfo kwallet-pam kwalletmanager vim kclock cmake ninja
+  steam qbittorrent obs-studio elisa thunderbird putty okular filezilla gsmartcontrol
+  gwenview kdegraphics-thumbnailers ffmpegthumbs mangohud btop spectacle qt5-virtualkeyboard
+  kolourpaint gnome-maps gnome-calendar kcalc sweeper vlc vlc-plugins-all scrcpy libreoffice-fresh
+  libreoffice-fresh-pl gnome-disk-utility ntfs-3g exfatprogs dosfstools btrfs-progs xfsprogs f2fs-tools
+  wine dosbox gst-plugins-bad gst-plugins-base gst-plugins-good gst-plugins-ugly libgphoto2 samba sane
+  unixodbc wine-gecko wine-mono gamemode gamescope breeze-gtk
+  dolphin-plugins kfind ttf-jetbrains-mono ttf-fira-code dunst lutris
+)
+
+info "Instalacja pakietów pacman..."
+for pkg in "${PACMAN_PKGS[@]}"; do
+  if ! pacman -Qi "$pkg" >/dev/null 2>&1; then
+    info "Instaluję: $pkg"
+    sudo pacman -S --noconfirm "$pkg"
+  else
+    warn "Pominięto — $pkg już jest."
+  fi
+done
+ok "Pakiety pacman zainstalowane."
+
+#######################################################################
+# 7. Flatpak + Flathub + Globalny język polski dla Flatpaków
+#######################################################################
+
+info "Konfiguruję Flatpak..."
+if ! flatpak remote-list | grep -q '^flathub'; then
+  sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+  ok "Dodano Flathub."
+else
+  warn "Flathub już istnieje."
+fi
+
+info "Wymuszam język polski w aplikacjach Flatpak..."
+flatpak config --set languages pl || true
+
+#######################################################################
+# 8. Aplikacje Flatpak
+#######################################################################
+
+FLATPAK_APPS=(
+  com.vysp3r.ProtonPlus
+)
+
+info "Instaluję aplikacje Flatpak..."
+for app in "${FLATPAK_APPS[@]}"; do
+  if ! flatpak list | grep -q "$app"; then
+    info "Instaluję: $app"
+    flatpak install -y flathub "$app"
+    ok "$app zainstalowany."
+  else
+    warn "Pominięto — $app już jest."
+  fi
+done
+ok "Aplikacje Flatpak zainstalowane."
+
+#######################################################################
+# 9. Usługi (tylko jeśli nieaktywne)
+#######################################################################
+
+info "Sprawdzam usługi..."
+if ! systemctl is-active --quiet power-profiles-daemon 2>/dev/null; then
+  sudo systemctl enable --now power-profiles-daemon
+  ok "power-profiles-daemon uruchomiony."
+else
+  warn "power-profiles-daemon już działa."
+fi
+
+#######################################################################
+# 10. Instalacja yay
+#######################################################################
+
+info "Sprawdzam yay..."
+if ! command -v yay >/dev/null 2>&1; then
+  info "Instaluję yay..."
+  git clone https://aur.archlinux.org/yay.git /tmp/yay
+  cd /tmp/yay
+  makepkg -si --noconfirm
+  cd -
+  ok "yay zainstalowany."
+else
+  warn "yay już jest."
+fi
+
+#######################################################################
+# 11. Instalacja sesji Gaming Mode z AUR
+#######################################################################
+
+info "Instalacja interfejsu Gaming Mode (gamescope-session) z AUR..."
+if ! pacman -Qi gamescope-session-git >/dev/null 2>&1; then
+    yay -S --noconfirm gamescope-session-git gamescope-session-steam-git
+    ok "Sesja Gamescope (Gaming Mode) zainstalowana."
+else
+    warn "Sesja Gamescope już istnieje."
+fi
+
+#######################################################################
+# 12. SDDM — Klawiatura ekranowa + motyw
+#######################################################################
+
+info "Konfiguruję SDDM..."
+SDDM_FILE="/etc/sddm.conf"
+SDDM_BLOCK=$'[General]\nInputMethod=qtvirtualkeyboard\n\n[Theme]\nCurrent=breeze'
+
+sudo touch "$SDDM_FILE"
+if grep -Fq "[General]" "$SDDM_FILE" &&
+   grep -Fq "InputMethod=qtvirtualkeyboard" "$SDDM_FILE" &&
+   grep -Fq "[Theme]" "$SDDM_FILE" &&
+   grep -Fq "Current=breeze" "$SDDM_FILE"; then
+    warn "Blok SDDM już istnieje."
+else
+    info "Dodaję blok SDDM..."
+    sudo sed -i ':a;/^\s*$/{$d;N;ba}' "$SDDM_FILE"
+    printf "%s\n" "$SDDM_BLOCK" | sudo tee -a "$SDDM_FILE" >/dev/null
+    ok "Blok SDDM dodany."
+fi
+
+#######################################################################
+# 13. mkinitcpio — dodanie amdgpu dla Steam Decka
+#######################################################################
+
+info "Konfiguruję mkinitcpio..."
+MKCONF="/etc/mkinitcpio.conf"
+sudo touch "$MKCONF"
+INITRAMFS_CHANGED=0
+
+if grep -q "^MODULES=" "$MKCONF"; then
+    if grep -q "^MODULES=.*amdgpu" "$MKCONF"; then
+        warn "amdgpu już jest."
+    else
+        info "Dodaję amdgpu do MODULES..."
+        sudo sed -i \
+          -e 's/^MODULES=(\s*\(.*\))/MODULES=(\1 amdgpu)/' \
+          -e 's/^MODULES=(\s*/MODULES=(/' \
+          "$MKCONF"
+        INITRAMFS_CHANGED=1
+    fi
+else
+    info "Dodaję nową linię MODULES=(amdgpu)..."
+    LINE=$(grep -n "^# MODULES" "$MKCONF" | cut -d: -f1 || true)
+    if [ -n "$LINE" ]; then
+        sudo sed -i "$((LINE+1)) i MODULES=(amdgpu)" "$MKCONF"
+    else
+        printf "\n# MODULES\nMODULES=(amdgpu)\n" | sudo tee -a "$MKCONF" >/dev/null
+    fi
+    INITRAMFS_CHANGED=1
+fi
+
+info "Generowanie initramfs dla jądra linux-neptune..."
+sudo mkinitcpio -P
+ok "Initramfs przebudowany."
+
+#######################################################################
+# 14. Bootloader — GRUB lub systemd-boot
+#######################################################################
+
+info "Aktualizacja konfiguracji bootloadera..."
+if [ -f /boot/loader/loader.conf ]; then
+    sudo sed -i \
+        -e 's/^[[:space:]]*timeout[[:space:]]*=[[:space:]]*[0-9]\+/timeout 0/' \
+        -e 's/^[[:space:]]*timeout[[:space:]]\+[0-9]\+/timeout 0/' \
+        /boot/loader/loader.conf
+    ok "Timeout systemd-boot ustawiony na 0."
+fi
+
+if [ -f /boot/grub/grub.cfg ]; then
+    sudo grub-mkconfig -o /boot/grub/grub.cfg
+    ok "Konfiguracja GRUB zaktualizowana pod jądro Neptune."
+fi
+
+#######################################################################
+# 15. Gamemode — konfiguracja
+#######################################################################
+
+info "Konfiguruję gamemode..."
+GAMEMODE_CFG="/etc/gamemode.ini"
+sudo touch "$GAMEMODE_CFG"
+sudo sed -i '1{/^[[:space:]]*$/d}' "$GAMEMODE_CFG"
+
+HAS_GENERAL=$(grep -Fq "[general]" "$GAMEMODE_CFG" && echo yes || echo no)
+HAS_RENICE=$(grep -Fq "renice=10" "$GAMEMODE_CFG" && echo yes || echo no)
+HAS_CPU=$(grep -Fq "[cpu]" "$GAMEMODE_CFG" && echo yes || echo no)
+HAS_GOV=$(grep -Fq "governor=performance" "$GAMEMODE_CFG" && echo yes || echo no)
+HAS_GPU=$(grep -Fq "[gpu]" "$GAMEMODE_CFG" && echo yes || echo no)
+HAS_GPU_OPT=$(grep -Fq "apply_gpu_optimisations=accept-responsibility" "$GAMEMODE_CFG" && echo yes || echo no)
+HAS_GPU_DEV=$(grep -Fq "gpu_device=0" "$GAMEMODE_CFG" && echo yes || echo no)
+
+if [ "$HAS_GENERAL" = yes ] && [ "$HAS_RENICE" = yes ] && [ "$HAS_CPU" = yes ] && \
+   [ "$HAS_GOV" = yes ] && [ "$HAS_GPU" = yes ] && [ "$HAS_GPU_OPT" = yes ] && [ "$HAS_GPU_DEV" = yes ]; then
+    warn "Konfiguracja gamemode już istnieje."
+else
+    info "Uzupełniam konfigurację gamemode..."
+    if [ "$HAS_GENERAL" = no ]; then printf "[general]\n" | sudo tee -a "$GAMEMODE_CFG" >/dev/null; fi
+    if [ "$HAS_RENICE" = no ]; then printf "renice=10\n" | sudo tee -a "$GAMEMODE_CFG" >/dev/null; fi
+    if [ "$HAS_CPU" = no ]; then printf "\n[cpu]\n" | sudo tee -a "$GAMEMODE_CFG" >/dev/null; fi
+    if [ "$HAS_GOV" = no ]; then printf "governor=performance\n" | sudo tee -a "$GAMEMODE_CFG" >/dev/null; fi
+    if [ "$HAS_GPU" = no ]; then printf "\n[gpu]\n" | sudo tee -a "$GAMEMODE_CFG" >/dev/null; fi
+    if [ "$HAS_GPU_OPT" = no ]; then printf "apply_gpu_optimisations=accept-responsibility\n" | sudo tee -a "$GAMEMODE_CFG" >/dev/null; fi
+    if [ "$HAS_GPU_DEV" = no ]; then printf "gpu_device=0\n" | sudo tee -a "$GAMEMODE_CFG" >/dev/null; fi
+    ok "Gamemode skonfigurowany."
+fi
+
+#######################################################################
+# 16. Czyszczenie cache
+#######################################################################
+
+info "Czyszczę cache pacmana, yay i flatpaka..."
+sudo pacman -Sc --noconfirm >/dev/null 2>&1 || true
+yay -Sc --noconfirm >/dev/null 2>&1 || true
+flatpak uninstall --unused -y >/dev/null 2>&1 || true
+flatpak remove --unused -y >/dev/null 2>&1 || true
+flatpak repair --user -y >/dev/null 2>&1 || true
+flatpak repair --system -y >/dev/null 2>&1 || true
+ok "Cache wyczyszczony."
+
+#######################################################################
+# 17. Finalna aktualizacja
+#######################################################################
+
+info "Finalna aktualizacja systemu..."
+sudo pacman -Syu --noconfirm
+ok "System gotowy."
+
+echo -e "${GREEN}=== Operacja na Steam Decku zakończona sukcesem ===${RESET}"
+echo ""
+info "Restart systemu nastąpi za 10 sekund."
+echo ""
+
+for i in {10..1}; do
+    echo "Restart za $i..."
+    sleep 1
+done
+
+info "Restartuję system..."
+sudo systemctl reboot
