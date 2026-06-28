@@ -93,27 +93,23 @@ fi
 
 info "Instalacja oficjalnych sterowników sprzętowych Steam Decka..."
 if ! pacman -Qi jupiter-hw-support >/dev/null 2>&1; then
-    info "Pobieranie pakietów za pomocą curl (całkowite ominięcie sprawdzania pacmana)..."
+    info "Pobieranie oficjalnych pakietów za pomocą curl..."
 
-    # Tworzymy tymczasowy folder na pakiety
+    # Tworzymy czysty tymczasowy folder na pakiety
+    rm -rf /tmp/steamdeck_drivers
     mkdir -p /tmp/steamdeck_drivers
     cd /tmp/steamdeck_drivers
 
-    # Pobieramy najświeższe wersje paczek bezpośrednio z serwera Valve za pomocą curl
-    info "Pobieranie jupiter-hw-support..."
-    curl -L -s -O "https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/jupiter-hw-support-*[0-9].pkg.tar.zst" || curl -L -s -O "https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/jupiter-hw-support-3.6.1-1-x86_64.pkg.tar.zst"
-    
-    info "Pobieranie jupiter-fan-control..."
-    curl -L -s -O "https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/jupiter-fan-control-*[0-9].pkg.tar.zst" || curl -L -s -O "https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/jupiter-fan-control-2.1-1-any.pkg.tar.zst"
-    
-    info "Pobieranie steamdeck-dsp..."
-    curl -L -s -O "https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/steamdeck-dsp-*[0-9].pkg.tar.zst" || curl -L -s -O "https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/steamdeck-dsp-0.49-1-x86_64.pkg.tar.zst"
+    # Pobieramy konkretne, stabilne wersje bezpośrednio przez jednoznaczne URL
+    curl -L -O https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/jupiter-hw-support-3.6.1-1-x86_64.pkg.tar.zst
+    curl -L -O https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/jupiter-fan-control-2.1-1-any.pkg.tar.zst
+    curl -L -O https://steamdeck-packages.steamos.cloud/archlinux-mirror/jupiter-main/os/x86_64/steamdeck-dsp-0.49-1-x86_64.pkg.tar.zst
 
-    info "Wymuszanie instalacji z plików lokalnych bez sprawdzania zależności..."
-    # Instalacja pobranych plików na bezczelnego za pomocą -U oraz --nodeps
-    sudo pacman -U --noconfirm --nodeps jupiter-hw-support-*.pkg.tar.zst jupiter-fan-control-*.pkg.tar.zst steamdeck-dsp-*.pkg.tar.zst
+    info "Wymuszanie instalacji pakietów sprzętowych bez sprawdzania zależności (--nodeps)..."
+    # Instalacja z pominięciem sprawdzania zależności (rozwiązuje problem z python i noisetorch)
+    sudo pacman -U --noconfirm --nodeps jupiter-hw-support-3.6.1-1-x86_64.pkg.tar.zst jupiter-fan-control-2.1-1-any.pkg.tar.zst steamdeck-dsp-0.49-1-x86_64.pkg.tar.zst
 
-    # Powrót do poprzedniego katalogu i czyszczenie
+    # Powrót do poprzedniego katalogu i czyszczenie plików tymczasowych
     cd - >/dev/null
     rm -rf /tmp/steamdeck_drivers
     ok "Sterowniki sprzętowe zainstalowane pomyślnie z flagą --nodeps."
@@ -258,7 +254,7 @@ if ! pacman -Qi gamescope-session-git >/dev/null 2>&1; then
     yay -S --noconfirm gamescope-session-git gamescope-session-steam-git
     ok "Sesja Gamescope (Gaming Mode) zainstalowana."
 else
-    warn "Sesja Gamescope już istnieje."
+    warn "Sesja Gamescope already exists."
 fi
 
 #######################################################################
