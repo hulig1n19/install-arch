@@ -142,7 +142,7 @@ PACMAN_PKGS=(
   ark p7zip unrar unzip lrzip lzop zip papirus-icon-theme capitaine-cursors discover
   kdeplasma-addons kdeconnect sshfs noto-fonts-cjk noto-fonts-extra cantarell-fonts hunspell-pl
   lib32-mesa lib32-vulkan-intel clinfo kwallet-pam kwalletmanager vim kclock cmake ninja vulkan-intel
-  qbittorrent elisa thunderbird putty okular filezilla gsmartcontrol intel-media-driver
+  qbittorrent elisa thunderbird okular filezilla gsmartcontrol intel-media-driver
   gwenview kdegraphics-thumbnailers ffmpegthumbs mangohud occt btop spectacle qt5-virtualkeyboard
   kolourpaint gnome-maps gnome-calendar kcalc sweeper vlc vlc-plugins-all scrcpy libreoffice-fresh
   libreoffice-fresh-pl gnome-disk-utility ntfs-3g exfatprogs dosfstools btrfs-progs xfsprogs f2fs-tools
