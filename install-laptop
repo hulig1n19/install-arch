@@ -137,13 +137,13 @@ PACMAN_PKGS=(
   ark p7zip unrar unzip lrzip lzop zip papirus-icon-theme capitaine-cursors discover
   kdeplasma-addons kdeconnect sshfs noto-fonts-cjk noto-fonts-extra cantarell-fonts hunspell-pl
   lib32-mesa lib32-vulkan-intel clinfo kwallet-pam kwalletmanager vim kclock cmake ninja vulkan-intel
-  qbittorrent elisa thunderbird putty okular filezilla gsmartcontrol intel-media-driver
-  gwenview kdegraphics-thumbnailers ffmpegthumbs mangohud occt btop spectacle qt5-virtualkeyboard
-  kolourpaint gnome-maps gnome-calendar kcalc sweeper vlc vlc-plugins-all scrcpy libreoffice-fresh
+  qbittorrent elisa thunderbird putty okular gsmartcontrol intel-media-driver
+  gwenview kdegraphics-thumbnailers ffmpegthumbs mangohud btop spectacle qt5-virtualkeyboard
+  kolourpaint gnome-maps gnome-calendar kcalc sweeper vlc vlc-plugins-all libreoffice-fresh
   libreoffice-fresh-pl gnome-disk-utility ntfs-3g exfatprogs dosfstools btrfs-progs xfsprogs f2fs-tools
   wine dosbox gst-plugins-bad gst-plugins-base gst-plugins-good gst-plugins-ugly libgphoto2 samba sane
   unixodbc wine-gecko wine-mono linux-lts-headers pacman-contrib gamemode gamescope breeze-gtk
-  dolphin-plugins kfind ttf-jetbrains-mono ttf-fira-code dunst lutris
+  dolphin-plugins kfind ttf-jetbrains-mono ttf-fira-code dunst
 )
 
 info "Instalacja pakietów pacman..."
@@ -172,28 +172,7 @@ fi
 
 
 #######################################################################
-# 6. Aplikacje Flatpak
-#######################################################################
-
-FLATPAK_APPS=(
-  com.vysp3r.ProtonPlus
-)
-
-info "Instaluję aplikacje Flatpak..."
-for app in "${FLATPAK_APPS[@]}"; do
-  if ! flatpak list | grep -q "$app"; then
-    info "Instaluję: $app"
-    flatpak install -y flathub "$app"
-    ok "$app zainstalowana."
-  else
-    warn "Pominięto — $app już jest."
-  fi
-done
-ok "Aplikacje Flatpak zainstalowane."
-
-
-#######################################################################
-# 7. Usługi (tylko jeśli nieaktywne)
+# 6. Usługi (tylko jeśli nieaktywne)
 #######################################################################
 
 info "Sprawdzam usługi..."
@@ -206,7 +185,7 @@ fi
 
 
 #######################################################################
-# 8. Instalacja yay (wsparcie dla konta root)
+# 7. Instalacja yay (wsparcie dla konta root)
 #######################################################################
 
 info "Sprawdzam yay..."
@@ -235,7 +214,7 @@ fi
 
 
 #######################################################################
-# 9. Instalacja z AUR (zabezpieczenie przed rootem)
+# 8. Instalacja z AUR (zabezpieczenie przed rootem)
 #######################################################################
 
 AUR_PKGS=(
@@ -255,7 +234,7 @@ done
 
 
 #######################################################################
-# 10. SDDM — konfiguracja
+# 9. SDDM — konfiguracja
 #######################################################################
 
 info "Konfiguruję SDDM..."
@@ -275,7 +254,7 @@ fi
 
 
 #######################################################################
-# 11. Silent Boot (UKI Cmdline) + mkinitcpio (i915, brak fsck)
+# 10. Silent Boot (UKI Cmdline) + mkinitcpio (i915, brak fsck)
 #######################################################################
 
 info "Konfiguruję cichy rozruch (Silent Boot) oraz mkinitcpio..."
@@ -342,7 +321,7 @@ fi
 
 
 #######################################################################
-# 12. systemd-boot — timeout 0
+# 11. systemd-boot — timeout 0
 #######################################################################
 
 info "Ustawiam timeout 0 w systemd-boot..."
@@ -362,7 +341,7 @@ fi
 
 
 #######################################################################
-# 13. Gamemode
+# 12. Gamemode
 #######################################################################
 
 info "Konfiguruję gamemode..."
@@ -395,7 +374,7 @@ fi
 
 
 #######################################################################
-# 14. Czyszczenie cache
+# 13. Czyszczenie cache
 #######################################################################
 
 info "Czyszczę cache pacmana, yay i flatpaka..."
@@ -417,7 +396,7 @@ ok "Cache wyczyszczony."
 
 
 #######################################################################
-# 15. Finalna aktualizacja
+# 14. Finalna aktualizacja
 #######################################################################
 
 info "Finalna aktualizacja systemu..."
