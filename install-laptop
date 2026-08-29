@@ -32,6 +32,26 @@ progress_bar() {
 }
 
 #######################################################################
+# Sprawdzenie i automatyczne montowanie partycji EFI (/boot)
+#######################################################################
+
+info "Sprawdzam montowanie partycji EFI (/boot)..."
+if ! mountpoint -q /boot; then
+    EFI_PART=$(lsblk -no NAME,FSTYPE | grep -i "vfat" | awk '{print "/dev/" $1}' | head -n 1)
+    if [ -n "$EFI_PART" ]; then
+        sudo mount "$EFI_PART" /boot
+        ok "Automatycznie zamontowano partycję EFI ($EFI_PART) do /boot."
+    else
+        warn "Nie znaleziono partycji vfat dla /boot. Upewnij się, że jest zamontowana!"
+    fi
+else
+    ok "Partycja /boot jest już poprawnie zamontowana."
+fi
+
+# Upewniamy się, że katalogi dla systemd-boot na pewno istnieją
+sudo mkdir -p /boot/loader/entries
+
+#######################################################################
 # Banner ARCH LINUX (minimalistyczny)
 #######################################################################
 
@@ -39,19 +59,19 @@ arch_logo() {
     echo -e "${CYAN}"
 
     echo "=================================="
-    echo "     ARCH LINUX - KDE Plasma      "
-    echo "     Skrypt Instalacyjny 2026     "
-    echo "           23.02.2026             "
+    echo "        ARCH LINUX - KDE Plasma      "
+    echo "       Skrypt Instalacyjny 2026      "
+    echo "                  23.02.2026         "
     echo "=================================="
 
     echo ""
     echo -e "${YELLOW}Autor Skryptu: Krzysiek Wierciuch (Hulig1n19)${RESET}"
     echo ""
-    echo -e "${RED}Godzina Utworzenia Skryptu: 21:38${RESET}"
+    echo -e "${RED}Godzina Utworzenia Skryptu: 16:02${RESET}"
     echo ""
-    echo -e "${GREEN}Data Utworzenia Skryptu: 23.02.2026${RESET}"
+    echo -e "${GREEN}Data Utworzenia Skryptu: 29.08.2026${RESET}"
     echo ""
-    echo -e "${WHITE}Utworzono Specjalnie Dla: Komputera Stacjonarnego${RESET}"
+    echo -e "${WHITE}Utworzono Specjalnie Dla: Lenovo x260 ThinkPad${RESET}"
     echo ""
 }
 
@@ -122,7 +142,7 @@ PACMAN_PKGS=(
   ark p7zip unrar unzip lrzip lzop zip papirus-icon-theme capitaine-cursors discover
   kdeplasma-addons kdeconnect sshfs noto-fonts-cjk noto-fonts-extra cantarell-fonts hunspell-pl
   lib32-mesa lib32-vulkan-intel clinfo kwallet-pam kwalletmanager vim kclock cmake ninja vulkan-intel
-  qbittorrent obs-studio elisa thunderbird putty okular filezilla gsmartcontrol intel-media-driver
+  qbittorrent elisa thunderbird putty okular filezilla gsmartcontrol intel-media-driver
   gwenview kdegraphics-thumbnailers ffmpegthumbs mangohud occt btop spectacle qt5-virtualkeyboard
   kolourpaint gnome-maps gnome-calendar kcalc sweeper vlc vlc-plugins-all scrcpy libreoffice-fresh
   libreoffice-fresh-pl gnome-disk-utility ntfs-3g exfatprogs dosfstools btrfs-progs xfsprogs f2fs-tools
@@ -191,6 +211,7 @@ if ! systemctl is-active --quiet power-profiles-daemon 2>/dev/null; then
 else
   warn "power-profiles-daemon już działa."
 fi
+
 
 #######################################################################
 # 8. Instalacja yay
@@ -296,51 +317,51 @@ fi
 
 info "Ustawiam timeout 0 w systemd-boot..."
 
-if [ -f /boot/loader/loader.conf ]; then
+LOADER_CONF="/boot/loader/loader.conf"
+
+if [ ! -f "$LOADER_CONF" ]; then
+    info "Tworzę brakujący plik loader.conf..."
+    sudo bash -c "echo 'timeout 0' > '$LOADER_CONF'"
+    ok "Utworzono loader.conf z timeout 0."
+else
     sudo sed -i \
         -e 's/^[[:space:]]*timeout[[:space:]]*=[[:space:]]*[0-9]\+/timeout 0/' \
         -e 's/^[[:space:]]*timeout[[:space:]]\+[0-9]\+/timeout 0/' \
-        /boot/loader/loader.conf
-    ok "Timeout ustawiony."
-else
-    warn "Plik loader.conf nie istnieje — pomijam."
+        "$LOADER_CONF"
+    ok "Timeout ustawiony na 0."
 fi
 
 
 #######################################################################
-# 13. Automatyczna konfiguracja cichego rozruchu (quiet) dla UKI
+# 13. Automatyczna konfiguracja cichego rozruchu dla UKI (quiet + splash)
 #######################################################################
 
-info "Konfiguruję cichy rozruch (quiet) dla UKI..."
+info "Konfiguruję cichy rozruch UKI..."
 
-# 1. Tworzymy plik /etc/kernel/cmdline z odpowiednimi parametrami (UUID głównej partycji + quiet)
+# 1. Tworzymy lub aktualizujemy /etc/kernel/cmdline
 if [ ! -f /etc/kernel/cmdline ]; then
     ROOT_UUID=$(findmnt -no UUID /)
-    echo "root=UUID=$ROOT_UUID rw quiet loglevel=2" | sudo tee /etc/kernel/cmdline > /dev/null
-    ok "Utworzono /etc/kernel/cmdline z parametrami quiet."
+    echo "root=UUID=$ROOT_UUID rw quiet loglevel=2 rd.systemd.show_status=auto rd.udev.log_level=3 splash" | sudo tee /etc/kernel/cmdline > /dev/null
+    ok "Utworzono /etc/kernel/cmdline."
 else
-    # Jeśli plik już istnieje, upewniamy się, że ma 'quiet'
     if ! grep -q "quiet" /etc/kernel/cmdline; then
-        sudo sed -i 's/$/ quiet loglevel=2/' /etc/kernel/cmdline
-        ok "Dopisano parametry quiet do /etc/kernel/cmdline."
+        sudo sed -i 's/$/ quiet loglevel=2 rd.systemd.show_status=auto rd.udev.log_level=3 splash/' /etc/kernel/cmdline
+        ok "Dopisano parametry cichego rozruchu do /etc/kernel/cmdline."
     else
         warn "Parametr 'quiet' już jest w /etc/kernel/cmdline."
     fi
 fi
 
-# 2. Poprawiamy preset mkinitcpio dla linux-lts, aby uwzględniał --cmdline
+# 2. Konfiguracja presetu mkinitcpio pod UKI, aby wciągnął cmdline
 PRESET_FILE="/etc/mkinitcpio.d/linux-lts.preset"
 if [ -f "$PRESET_FILE" ]; then
-    if ! grep -q "--cmdline" "$PRESET_FILE"; then
+    if ! grep -q -- "--cmdline" "$PRESET_FILE"; then
         info "Aktualizuję preset mkinitcpio dla UKI..."
         sudo sed -i 's|default_options=.*|default_options="--splash /usr/share/systemd/bootctl/splash-arch.bmp --cmdline /etc/kernel/cmdline"|' "$PRESET_FILE"
         ok "Preset zaktualizowany."
-    else
-        warn "Preset mkinitcpio ma już skonfigurowaną linię poleceń."
     fi
 fi
 
-# 3. Ponowne wygenerowanie obrazu UKI z nowymi opcjami
 info "Przebudowuję obrazy UKI..."
 sudo mkinitcpio -P
 ok "Cichy rozruch skonfigurowany pomyślnie."
@@ -412,19 +433,10 @@ fi
 
 info "Czyszczę cache pacmana, yay i flatpaka..."
 
-# Pacman — usuwa stare pakiety z cache
 sudo pacman -Sc --noconfirm >/dev/null 2>&1 || true
-
-# Yay — usuwa cache AUR
 yay -Sc --noconfirm >/dev/null 2>&1 || true
-
-# Flatpak — usuwa nieużywane runtime’y i zależności
 flatpak uninstall --unused -y >/dev/null 2>&1 || true
-
-# Flatpak — usuwa dane po aplikacjach, które już nie istnieją
 flatpak remove --unused -y >/dev/null 2>&1 || true
-
-# Flatpak — naprawa i czyszczenie repozytoriów (bezpieczne)
 flatpak repair --user -y >/dev/null 2>&1 || true
 flatpak repair --system -y >/dev/null 2>&1 || true
 
