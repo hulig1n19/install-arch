@@ -242,16 +242,23 @@ fi
 
 
 #######################################################################
-# 10. Instalacja AUR (bez duplikatów)
+# 10. Instalacja AUR (bez duplikatów i jako zwykły użytkownik)
 #######################################################################
 
 AUR_PKGS=(
   xone-dkms
 )
 
+REAL_USER="${SUDO_USER:-$USER}"
+
 for pkg in "${AUR_PKGS[@]}"; do
   if ! pacman -Qi "$pkg" >/dev/null 2>&1; then
-    yay -S --noconfirm "$pkg"
+    info "Instaluję pakiet AUR: $pkg"
+    # Uruchamiamy yay jako zwykły użytkownik, a nie przez sudo bezpośrednio
+    sudo -u "$REAL_USER" yay -S --noconfirm "$pkg"
+    ok "$pkg zainstalowany."
+  else
+    warn "Pominięto — $pkg już jest."
   fi
 done
 
