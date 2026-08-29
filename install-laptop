@@ -223,14 +223,21 @@ fi
 
 info "Sprawdzam yay..."
 if ! command -v yay >/dev/null 2>&1; then
-  info "Instaluję yay..."
-  git clone https://aur.archlinux.org/yay.git /tmp/yay
-  cd /tmp/yay
-  makepkg -si --noconfirm
-  cd -
-  ok "yay zainstalowany."
+    info "Instaluję yay..."
+    
+    # Pobieramy aktualną nazwę zwykłego użytkownika (nie root)
+    REAL_USER="${SUDO_USER:-$USER}"
+    
+    # Klonujemy repozytorium i zmieniamy właściciela folderu /tmp/yay na zwykłego użytkownika
+    git clone https://aur.archlinux.org/yay.git /tmp/yay
+    chown -R "$REAL_USER:$REAL_USER" /tmp/yay
+    
+    # Uruchamiamy budowanie jako zwykły użytkownik za pomocą sudo -u
+    sudo -u "$REAL_USER" bash -c "cd /tmp/yay && makepkg -si --noconfirm"
+    
+    ok "yay zainstalowany."
 else
-  warn "yay już jest."
+    warn "yay już jest."
 fi
 
 
