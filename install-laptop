@@ -336,39 +336,7 @@ fi
 
 
 #######################################################################
-# 13. Cichy rozruch (quiet boot)
-#######################################################################
-
-info "Konfiguruję cichy rozruch (ukrywanie logów i fsck)..."
-SILENT_ARGS="quiet loglevel=0 systemd.show_status=false rd.systemd.show_status=false rd.udev.log_level=0 vt.global_cursor_default=0 splash"
-
-ENTRY_FILE=$(sudo ls /boot/loader/entries/*.conf 2>/dev/null | head -n 1 || true)
-if [ -n "$ENTRY_FILE" ]; then
-    if ! sudo grep -q "vt.global_cursor_default" "$ENTRY_FILE"; then
-        sudo sed -i "s|^options .*|& $SILENT_ARGS|" "$ENTRY_FILE"
-        ok "Dopisano parametry wyciszające do $ENTRY_FILE."
-    else
-        warn "Parametry wyciszające już istnieją w $ENTRY_FILE."
-    fi
-else
-    warn "Nie znaleziono wpisu konfiguracyjnego w /boot/loader/entries/. Pomięto wyciszanie."
-fi
-
-PRESET_FILE="/etc/mkinitcpio.d/linux-lts.preset"
-if [ -f "$PRESET_FILE" ]; then
-    sudo sed -i '/default_options=/d' "$PRESET_FILE"
-    sudo sed -i '/default_uki=/d' "$PRESET_FILE"
-    sudo sed -i '/fallback_uki=/d' "$PRESET_FILE"
-    ok "Wyczyszczono plik preset z błędnych konfiguracji UKI."
-fi
-
-info "Przebudowuję ostatecznie obrazy startowe (mkinitcpio)..."
-sudo mkinitcpio -P
-ok "Cichy rozruch zaktualizowany."
-
-
-#######################################################################
-# 14. Gamemode
+# 13. Gamemode
 #######################################################################
 
 info "Konfiguruję gamemode..."
@@ -401,7 +369,7 @@ fi
 
 
 #######################################################################
-# 15. Czyszczenie cache
+# 14. Czyszczenie cache
 #######################################################################
 
 info "Czyszczę cache pacmana, yay i flatpaka..."
@@ -423,7 +391,7 @@ ok "Cache wyczyszczony."
 
 
 #######################################################################
-# 16. Finalna aktualizacja
+# 15. Finalna aktualizacja
 #######################################################################
 
 info "Finalna aktualizacja systemu..."
