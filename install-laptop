@@ -48,7 +48,6 @@ else
     ok "Partycja /boot jest już poprawnie zamontowana."
 fi
 
-# Upewniamy się, że katalogi dla systemd-boot na pewno istnieją
 sudo mkdir -p /boot/loader/entries
 
 #######################################################################
@@ -87,7 +86,7 @@ ok "System zaktualizowany."
 
 
 #######################################################################
-# 2. Instalacja Plasma Desktop + SDDM (bez duplikatów)
+# 2. Instalacja Plasma Desktop + SDDM
 #######################################################################
 
 info "Instaluję Plasma Desktop i komponenty KDE..."
@@ -112,7 +111,6 @@ for pkg in "${PLASMA_PKGS[@]}"; do
     warn "Pominięto — $pkg już jest."
   fi
 done
-
 ok "Plasma Desktop i komponenty KDE zainstalowane."
 
 
@@ -121,7 +119,6 @@ ok "Plasma Desktop i komponenty KDE zainstalowane."
 #######################################################################
 
 info "Włączam SDDM..."
-
 if ! systemctl is-enabled --quiet sddm 2>/dev/null; then
     sudo systemctl enable sddm
     ok "SDDM włączony."
@@ -131,7 +128,7 @@ fi
 
 
 #######################################################################
-# 4. Instalacja pakietów pacman (bez duplikatów)
+# 4. Instalacja pakietów pacman
 #######################################################################
 
 PACMAN_PKGS=(
@@ -183,17 +180,15 @@ FLATPAK_APPS=(
 )
 
 info "Instaluję aplikacje Flatpak..."
-
 for app in "${FLATPAK_APPS[@]}"; do
   if ! flatpak list | grep -q "$app"; then
     info "Instaluję: $app"
     flatpak install -y flathub "$app"
-    ok "$app zainstalowany."
+    ok "$app zainstalowana."
   else
     warn "Pominięto — $app już jest."
   fi
 done
-
 ok "Aplikacje Flatpak zainstalowane."
 
 
@@ -202,7 +197,6 @@ ok "Aplikacje Flatpak zainstalowane."
 #######################################################################
 
 info "Sprawdzam usługi..."
-
 if ! systemctl is-active --quiet power-profiles-daemon 2>/dev/null; then
   sudo systemctl enable --now power-profiles-daemon
   ok "power-profiles-daemon uruchomiony."
@@ -241,7 +235,7 @@ fi
 
 
 #######################################################################
-# 9. Instalacja AUR (bez duplikatów)
+# 9. Instalacja z AUR (zabezpieczenie przed rootem)
 #######################################################################
 
 AUR_PKGS=(
@@ -250,26 +244,27 @@ AUR_PKGS=(
 
 for pkg in "${AUR_PKGS[@]}"; do
   if ! pacman -Qi "$pkg" >/dev/null 2>&1; then
-    yay -S --noconfirm "$pkg"
+    info "Instaluję z AUR: $pkg"
+    if [ "$EUID" -eq 0 ] && [ -n "${SUDO_USER:-}" ]; then
+      sudo -u "$SUDO_USER" yay -S --noconfirm "$pkg"
+    else
+      yay -S --noconfirm "$pkg"
+    fi
   fi
 done
 
 
 #######################################################################
-# 10. SDDM — dodanie bloku tylko jeśli go nie ma
+# 10. SDDM — konfiguracja
 #######################################################################
 
 info "Konfiguruję SDDM..."
-
 SDDM_FILE="/etc/sddm.conf"
 SDDM_BLOCK=$'[General]\nInputMethod=qtvirtualkeyboard\n\n[Theme]\nCurrent=breeze'
 
 sudo touch "$SDDM_FILE"
 
-if grep -Fq "[General]" "$SDDM_FILE" &&
-   grep -Fq "InputMethod=qtvirtualkeyboard" "$SDDM_FILE" &&
-   grep -Fq "[Theme]" "$SDDM_FILE" &&
-   grep -Fq "Current=breeze" "$SDDM_FILE"; then
+if grep -Fq "[General]" "$SDDM_FILE" && grep -Fq "InputMethod=qtvirtualkeyboard" "$SDDM_FILE" && grep -Fq "[Theme]" "$SDDM_FILE" && grep -Fq "Current=breeze" "$SDDM_FILE"; then
     warn "Blok SDDM już istnieje."
 else
     info "Dodaję blok SDDM..."
@@ -280,11 +275,10 @@ fi
 
 
 #######################################################################
-# 11. mkinitcpio — dodanie i915 bez duplikatów
+# 11. mkinitcpio — moduł i915
 #######################################################################
 
 info "Konfiguruję mkinitcpio..."
-
 MKCONF="/etc/mkinitcpio.conf"
 sudo touch "$MKCONF"
 
@@ -322,11 +316,10 @@ fi
 
 
 #######################################################################
-# 12. systemd-boot — ustawienie timeout 0
+# 12. systemd-boot — timeout 0
 #######################################################################
 
 info "Ustawiam timeout 0 w systemd-boot..."
-
 LOADER_CONF="/boot/loader/loader.conf"
 
 if [ ! -f "$LOADER_CONF" ]; then
@@ -343,14 +336,12 @@ fi
 
 
 #######################################################################
-# 13. Automatyczna konfiguracja absolutnie cichego rozruchu
+# 13. Cichy rozruch (quiet boot)
 #######################################################################
 
 info "Konfiguruję cichy rozruch (ukrywanie logów i fsck)..."
-
 SILENT_ARGS="quiet loglevel=0 systemd.show_status=false rd.systemd.show_status=false rd.udev.log_level=0 vt.global_cursor_default=0 splash"
 
-# 1. Dodawanie parametrów do pierwszego znalezionego wpisu systemd-boot
 ENTRY_FILE=$(sudo ls /boot/loader/entries/*.conf 2>/dev/null | head -n 1 || true)
 if [ -n "$ENTRY_FILE" ]; then
     if ! sudo grep -q "vt.global_cursor_default" "$ENTRY_FILE"; then
@@ -363,7 +354,6 @@ else
     warn "Nie znaleziono wpisu konfiguracyjnego w /boot/loader/entries/. Pomięto wyciszanie."
 fi
 
-# 2. Czyszczenie pliku preset z resztek opcji UKI
 PRESET_FILE="/etc/mkinitcpio.d/linux-lts.preset"
 if [ -f "$PRESET_FILE" ]; then
     sudo sed -i '/default_options=/d' "$PRESET_FILE"
@@ -378,11 +368,10 @@ ok "Cichy rozruch zaktualizowany."
 
 
 #######################################################################
-# 14. Gamemode — konfiguracja
+# 14. Gamemode
 #######################################################################
 
 info "Konfiguruję gamemode..."
-
 GAMEMODE_CFG="/etc/gamemode.ini"
 
 sudo touch "$GAMEMODE_CFG"
@@ -396,43 +385,17 @@ HAS_GPU=$(grep -Fq "[gpu]" "$GAMEMODE_CFG" && echo yes || echo no)
 HAS_GPU_OPT=$(grep -Fq "apply_gpu_optimisations=accept-responsibility" "$GAMEMODE_CFG" && echo yes || echo no)
 HAS_GPU_DEV=$(grep -Fq "gpu_device=0" "$GAMEMODE_CFG" && echo yes || echo no)
 
-if [ "$HAS_GENERAL" = yes ] &&
-   [ "$HAS_RENICE" = yes ] &&
-   [ "$HAS_CPU" = yes ] &&
-   [ "$HAS_GOV" = yes ] &&
-   [ "$HAS_GPU" = yes ] &&
-   [ "$HAS_GPU_OPT" = yes ] &&
-   [ "$HAS_GPU_DEV" = yes ]; then
-
+if [ "$HAS_GENERAL" = yes ] && [ "$HAS_RENICE" = yes ] && [ "$HAS_CPU" = yes ] && [ "$HAS_GOV" = yes ] && [ "$HAS_GPU" = yes ] && [ "$HAS_GPU_OPT" = yes ] && [ "$HAS_GPU_DEV" = yes ]; then
     warn "Konfiguracja gamemode już istnieje."
-
 else
     info "Uzupełniam konfigurację gamemode..."
-
-    if [ "$HAS_GENERAL" = no ]; then
-        printf "[general]\n" | sudo tee -a "$GAMEMODE_CFG" >/dev/null
-    fi
-    if [ "$HAS_RENICE" = no ]; then
-        printf "renice=10\n" | sudo tee -a "$GAMEMODE_CFG" >/dev/null
-    fi
-
-    if [ "$HAS_CPU" = no ]; then
-        printf "\n[cpu]\n" | sudo tee -a "$GAMEMODE_CFG" >/dev/null
-    fi
-    if [ "$HAS_GOV" = no ]; then
-        printf "governor=performance\n" | sudo tee -a "$GAMEMODE_CFG" >/dev/null
-    fi
-
-    if [ "$HAS_GPU" = no ]; then
-        printf "\n[gpu]\n" | sudo tee -a "$GAMEMODE_CFG" >/dev/null
-    fi
-    if [ "$HAS_GPU_OPT" = no ]; then
-        printf "apply_gpu_optimisations=accept-responsibility\n" | sudo tee -a "$GAMEMODE_CFG" >/dev/null
-    fi
-    if [ "$HAS_GPU_DEV" = no ]; then
-        printf "gpu_device=0\n" | sudo tee -a "$GAMEMODE_CFG" >/dev/null
-    fi
-
+    [ "$HAS_GENERAL" = no ] && printf "[general]\n" | sudo tee -a "$GAMEMODE_CFG" >/dev/null
+    [ "$HAS_RENICE" = no ] && printf "renice=10\n" | sudo tee -a "$GAMEMODE_CFG" >/dev/null
+    [ "$HAS_CPU" = no ] && printf "\n[cpu]\n" | sudo tee -a "$GAMEMODE_CFG" >/dev/null
+    [ "$HAS_GOV" = no ] && printf "governor=performance\n" | sudo tee -a "$GAMEMODE_CFG" >/dev/null
+    [ "$HAS_GPU" = no ] && printf "\n[gpu]\n" | sudo tee -a "$GAMEMODE_CFG" >/dev/null
+    [ "$HAS_GPU_OPT" = no ] && printf "apply_gpu_optimisations=accept-responsibility\n" | sudo tee -a "$GAMEMODE_CFG" >/dev/null
+    [ "$HAS_GPU_DEV" = no ] && printf "gpu_device=0\n" | sudo tee -a "$GAMEMODE_CFG" >/dev/null
     ok "Gamemode skonfigurowany."
 fi
 
@@ -444,18 +407,19 @@ fi
 info "Czyszczę cache pacmana, yay i flatpaka..."
 
 sudo pacman -Sc --noconfirm >/dev/null 2>&1 || true
-# yay czyszczone jako odpowiedni user
-if [ "$EUID" -eq 0 ] && id -u builduser >/dev/null 2>&1; then
-    sudo -u builduser bash -c "yay -Sc --noconfirm >/dev/null 2>&1 || true"
+
+if [ "$EUID" -eq 0 ] && [ -n "${SUDO_USER:-}" ]; then
+    sudo -u "$SUDO_USER" yay -Sc --noconfirm >/dev/null 2>&1 || true
 else
     yay -Sc --noconfirm >/dev/null 2>&1 || true
 fi
+
 flatpak uninstall --unused -y >/dev/null 2>&1 || true
 flatpak remove --unused -y >/dev/null 2>&1 || true
 flatpak repair --user -y >/dev/null 2>&1 || true
 flatpak repair --system -y >/dev/null 2>&1 || true
 
-ok "Cache pacmana, yay i flatpaka wyczyszczony."
+ok "Cache wyczyszczony."
 
 
 #######################################################################
@@ -467,7 +431,6 @@ sudo pacman -Syu --noconfirm
 ok "System gotowy."
 
 echo -e "${GREEN}=== Operacja zakończona sukcesem ===${RESET}"
-
 echo ""
 info "Restart systemu nastąpi za 10 sekund."
 echo ""
