@@ -333,36 +333,38 @@ fi
 
 
 #######################################################################
-# 13. Automatyczna konfiguracja cichego rozruchu dla UKI (quiet + splash)
+# 13. Automatyczna konfiguracja absolutnie cichego rozruchu
 #######################################################################
 
-info "Konfiguruję cichy rozruch UKI..."
+info "Konfiguruję cichy rozruch (ukrywanie logów i fsck)..."
 
-# 1. Tworzymy lub aktualizujemy /etc/kernel/cmdline
+# Dodajemy parametry: loglevel=0, ukrycie statusów systemd oraz wyłączenie kursora
+SILENT_ARGS="quiet loglevel=0 systemd.show_status=false rd.systemd.show_status=false rd.udev.log_level=0 vt.global_cursor_default=0 splash"
+
 if [ ! -f /etc/kernel/cmdline ]; then
     ROOT_UUID=$(findmnt -no UUID /)
-    echo "root=UUID=$ROOT_UUID rw quiet loglevel=2 rd.systemd.show_status=auto rd.udev.log_level=3 splash" | sudo tee /etc/kernel/cmdline > /dev/null
-    ok "Utworzono /etc/kernel/cmdline."
+    echo "root=UUID=$ROOT_UUID rw $SILENT_ARGS" | sudo tee /etc/kernel/cmdline > /dev/null
+    ok "Utworzono /etc/kernel/cmdline z parametrami absolutnej ciszy."
 else
-    if ! grep -q "quiet" /etc/kernel/cmdline; then
-        sudo sed -i 's/$/ quiet loglevel=2 rd.systemd.show_status=auto rd.udev.log_level=3 splash/' /etc/kernel/cmdline
-        ok "Dopisano parametry cichego rozruchu do /etc/kernel/cmdline."
+    if ! grep -q "vt.global_cursor_default" /etc/kernel/cmdline; then
+        sudo sed -i "s/$/ $SILENT_ARGS/" /etc/kernel/cmdline
+        ok "Dopisano parametry wyciszające do /etc/kernel/cmdline."
     else
-        warn "Parametr 'quiet' już jest w /etc/kernel/cmdline."
+        warn "Parametry wyciszające już istnieją."
     fi
 fi
 
-# 2. Konfiguracja presetu mkinitcpio pod UKI, aby wciągnął cmdline
+# Zabezpieczenie przed błędem mkinitcpio: upewniamy się, że jeśli system używa UKI,
+# plik preset jest skonfigurowany poprawnie, a jeśli używa zwykłych obrazów img,
+# skrypt nie wrzuca konfliktujących opcji default_options.
 PRESET_FILE="/etc/mkinitcpio.d/linux-lts.preset"
 if [ -f "$PRESET_FILE" ]; then
-    if grep -q "default_options=" "$PRESET_FILE"; then
-        sudo sed -i 's|default_options=.*|default_options="--splash /usr/share/systemd/bootctl/splash-arch.bmp --cmdline /etc/kernel/cmdline"|' "$PRESET_FILE"
-        ok "Zaktualizowano opcje w preset dla UKI."
-    fi
+    # Czyścimy plik presetu z problematycznych wpisów UKI, jeśli nie używamy efi
+    sudo sed -i '/default_options=/d' "$PRESET_FILE"
+    sudo sed -i '/default_uki=/d' "$PRESET_FILE"
 fi
 
-# 3. Przebudowa ostatecznych obrazów UKI z nowymi parametrami
-info "Przebudowuję ostateczne obrazy UKI z parametrami cichego rozruchu..."
+info "Przebudowuję obrazy startowe..."
 sudo mkinitcpio -P
 ok "Cichy rozruch skonfigurowany pomyślnie."
 
