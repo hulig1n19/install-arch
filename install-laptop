@@ -59,7 +59,7 @@ arch_logo() {
     echo "=================================="
     echo "        ARCH LINUX - KDE Plasma      "
     echo "       Skrypt Instalacyjny 2026      "
-    echo "                  29.08.2026         "
+    echo "               29.08.2026          "
     echo "=================================="
     echo ""
     echo -e "${YELLOW}Autor Skryptu: Krzysiek Wierciuch (Hulig1n19)${RESET}"
@@ -215,7 +215,7 @@ if ! command -v yay >/dev/null 2>&1; then
   rm -rf /tmp/yay
   git clone https://aur.archlinux.org/yay.git /tmp/yay
   chmod -R 777 /tmp/yay
-  
+
   if [ "$EUID" -eq 0 ]; then
       warn "Uruchomiono jako root. Używam tymczasowego użytkownika do instalacji yay..."
       useradd -m -d /tmp/builduser builduser || true
@@ -275,18 +275,33 @@ fi
 
 
 #######################################################################
-# 11. mkinitcpio — moduł i915
+# 11. Silent Boot (UKI Cmdline) + mkinitcpio (i915, brak fsck)
 #######################################################################
 
-info "Konfiguruję mkinitcpio..."
+info "Konfiguruję cichy rozruch (Silent Boot) oraz mkinitcpio..."
 MKCONF="/etc/mkinitcpio.conf"
 sudo touch "$MKCONF"
 
 INITRAMFS_CHANGED=0
 
+# 1. Tworzenie parametru cmdline dla UKI ukrywającego napisy
+sudo mkdir -p /etc/cmdline.d
+CMDLINE_FILE="/etc/cmdline.d/quiet.conf"
+QUIET_PARAMS="quiet loglevel=3 rd.systemd.show_status=auto rd.udev.log_level=3 vt.global_cursor_default=0 systemd.show_status=false"
+
+if [ ! -f "$CMDLINE_FILE" ] || ! grep -q "quiet loglevel=3" "$CMDLINE_FILE"; then
+    info "Tworzę plik z parametrami cichego rozruchu w /etc/cmdline.d/quiet.conf..."
+    echo "$QUIET_PARAMS" | sudo tee "$CMDLINE_FILE" >/dev/null
+    INITRAMFS_CHANGED=1
+    ok "Dodano parametry cichego rozruchu."
+else
+    warn "Parametry cichego rozruchu już istnieją w /etc/cmdline.d/quiet.conf."
+fi
+
+# 2. Moduł i915 w mkinitcpio.conf (zapobiega miganiu obrazu)
 if grep -q "^MODULES=" "$MKCONF"; then
     if grep -q "^MODULES=.*i915" "$MKCONF"; then
-        warn "i915 już jest."
+        warn "i915 już jest w MODULES."
     else
         info "Dodaję i915 do MODULES..."
         sudo sed -i \
@@ -306,12 +321,23 @@ else
     INITRAMFS_CHANGED=1
 fi
 
-if [ "$INITRAMFS_CHANGED" = "1" ]; then
-    info "Przebudowuję initramfs..."
-    sudo mkinitcpio -P
-    ok "Initramfs przebudowany."
+# 3. Usuwanie hooka fsck z HOOKS (ukrywa komunikat /dev/sda2: clean)
+if grep -q "\bfsck\b" "$MKCONF"; then
+    info "Usuwam hook 'fsck' z mkinitcpio.conf..."
+    sudo sed -i -e 's/\bfsck\b//g' -e 's/  */ /g' -e 's/( /(/' "$MKCONF"
+    INITRAMFS_CHANGED=1
+    ok "Hook 'fsck' usunięty."
 else
-    warn "Initramfs bez zmian."
+    warn "Hook 'fsck' został już usunięty z HOOKS."
+fi
+
+# 4. Generowanie obrazu UKI z uwzględnieniem cmdline.d i zmian w mkinitcpio
+if [ "$INITRAMFS_CHANGED" = "1" ]; then
+    info "Przebudowuję obraz UKI (mkinitcpio -P)..."
+    sudo mkinitcpio -P
+    ok "Obraz UKI przebudowany pomyślnie."
+else
+    warn "Initramfs / UKI bez zmian."
 fi
 
 
