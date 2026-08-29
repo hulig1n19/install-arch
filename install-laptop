@@ -142,7 +142,7 @@ PACMAN_PKGS=(
   ark p7zip unrar unzip lrzip lzop zip papirus-icon-theme capitaine-cursors discover
   kdeplasma-addons kdeconnect sshfs noto-fonts-cjk noto-fonts-extra cantarell-fonts hunspell-pl
   lib32-mesa lib32-vulkan-intel clinfo kwallet-pam kwalletmanager vim kclock cmake ninja vulkan-intel
-  qbittorrent elisa thunderbird okular filezilla gsmartcontrol intel-media-driver
+  qbittorrent elisa thunderbird putty okular filezilla gsmartcontrol intel-media-driver
   gwenview kdegraphics-thumbnailers ffmpegthumbs mangohud occt btop spectacle qt5-virtualkeyboard
   kolourpaint gnome-maps gnome-calendar kcalc sweeper vlc vlc-plugins-all scrcpy libreoffice-fresh
   libreoffice-fresh-pl gnome-disk-utility ntfs-3g exfatprogs dosfstools btrfs-progs xfsprogs f2fs-tools
@@ -355,14 +355,14 @@ fi
 # 2. Konfiguracja presetu mkinitcpio pod UKI, aby wciągnął cmdline
 PRESET_FILE="/etc/mkinitcpio.d/linux-lts.preset"
 if [ -f "$PRESET_FILE" ]; then
-    if ! grep -q -- "--cmdline" "$PRESET_FILE"; then
-        info "Aktualizuję preset mkinitcpio dla UKI..."
+    if grep -q "default_options=" "$PRESET_FILE"; then
         sudo sed -i 's|default_options=.*|default_options="--splash /usr/share/systemd/bootctl/splash-arch.bmp --cmdline /etc/kernel/cmdline"|' "$PRESET_FILE"
-        ok "Preset zaktualizowany."
+        ok "Zaktualizowano opcje w preset dla UKI."
     fi
 fi
 
-info "Przebudowuję obrazy UKI..."
+# 3. Przebudowa ostatecznych obrazów UKI z nowymi parametrami
+info "Przebudowuję ostateczne obrazy UKI z parametrami cichego rozruchu..."
 sudo mkinitcpio -P
 ok "Cichy rozruch skonfigurowany pomyślnie."
 
