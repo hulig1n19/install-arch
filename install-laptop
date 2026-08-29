@@ -57,13 +57,11 @@ sudo mkdir -p /boot/loader/entries
 
 arch_logo() {
     echo -e "${CYAN}"
-
     echo "=================================="
     echo "        ARCH LINUX - KDE Plasma      "
     echo "       Skrypt Instalacyjny 2026      "
     echo "                  29.08.2026         "
     echo "=================================="
-
     echo ""
     echo -e "${YELLOW}Autor Skryptu: Krzysiek Wierciuch (Hulig1n19)${RESET}"
     echo ""
@@ -214,16 +212,28 @@ fi
 
 
 #######################################################################
-# 8. Instalacja yay
+# 8. Instalacja yay (wsparcie dla konta root)
 #######################################################################
 
 info "Sprawdzam yay..."
 if ! command -v yay >/dev/null 2>&1; then
   info "Instaluję yay..."
+  rm -rf /tmp/yay
   git clone https://aur.archlinux.org/yay.git /tmp/yay
-  cd /tmp/yay
-  makepkg -si --noconfirm
-  cd -
+  chmod -R 777 /tmp/yay
+  
+  if [ "$EUID" -eq 0 ]; then
+      warn "Uruchomiono jako root. Używam tymczasowego użytkownika do instalacji yay..."
+      useradd -m -d /tmp/builduser builduser || true
+      echo 'builduser ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/builduser
+      sudo -u builduser bash -c "cd /tmp/yay && makepkg -si --noconfirm"
+      rm -f /etc/sudoers.d/builduser
+      userdel -r builduser || true
+  else
+      cd /tmp/yay
+      makepkg -si --noconfirm
+      cd - >/dev/null
+  fi
   ok "yay zainstalowany."
 else
   warn "yay już jest."
@@ -338,35 +348,33 @@ fi
 
 info "Konfiguruję cichy rozruch (ukrywanie logów i fsck)..."
 
-# Dodajemy parametry: loglevel=0, ukrycie statusów systemd oraz wyłączenie kursora
 SILENT_ARGS="quiet loglevel=0 systemd.show_status=false rd.systemd.show_status=false rd.udev.log_level=0 vt.global_cursor_default=0 splash"
 
-if [ ! -f /etc/kernel/cmdline ]; then
-    ROOT_UUID=$(findmnt -no UUID /)
-    echo "root=UUID=$ROOT_UUID rw $SILENT_ARGS" | sudo tee /etc/kernel/cmdline > /dev/null
-    ok "Utworzono /etc/kernel/cmdline z parametrami absolutnej ciszy."
-else
-    if ! grep -q "vt.global_cursor_default" /etc/kernel/cmdline; then
-        sudo sed -i "s/$/ $SILENT_ARGS/" /etc/kernel/cmdline
-        ok "Dopisano parametry wyciszające do /etc/kernel/cmdline."
+# 1. Dodawanie parametrów do pierwszego znalezionego wpisu systemd-boot
+ENTRY_FILE=$(sudo ls /boot/loader/entries/*.conf 2>/dev/null | head -n 1 || true)
+if [ -n "$ENTRY_FILE" ]; then
+    if ! sudo grep -q "vt.global_cursor_default" "$ENTRY_FILE"; then
+        sudo sed -i "s|^options .*|& $SILENT_ARGS|" "$ENTRY_FILE"
+        ok "Dopisano parametry wyciszające do $ENTRY_FILE."
     else
-        warn "Parametry wyciszające już istnieją."
+        warn "Parametry wyciszające już istnieją w $ENTRY_FILE."
     fi
+else
+    warn "Nie znaleziono wpisu konfiguracyjnego w /boot/loader/entries/. Pomięto wyciszanie."
 fi
 
-# Zabezpieczenie przed błędem mkinitcpio: upewniamy się, że jeśli system używa UKI,
-# plik preset jest skonfigurowany poprawnie, a jeśli używa zwykłych obrazów img,
-# skrypt nie wrzuca konfliktujących opcji default_options.
+# 2. Czyszczenie pliku preset z resztek opcji UKI
 PRESET_FILE="/etc/mkinitcpio.d/linux-lts.preset"
 if [ -f "$PRESET_FILE" ]; then
-    # Czyścimy plik presetu z problematycznych wpisów UKI, jeśli nie używamy efi
     sudo sed -i '/default_options=/d' "$PRESET_FILE"
     sudo sed -i '/default_uki=/d' "$PRESET_FILE"
+    sudo sed -i '/fallback_uki=/d' "$PRESET_FILE"
+    ok "Wyczyszczono plik preset z błędnych konfiguracji UKI."
 fi
 
-info "Przebudowuję obrazy startowe..."
+info "Przebudowuję ostatecznie obrazy startowe (mkinitcpio)..."
 sudo mkinitcpio -P
-ok "Cichy rozruch skonfigurowany pomyślnie."
+ok "Cichy rozruch zaktualizowany."
 
 
 #######################################################################
@@ -436,7 +444,12 @@ fi
 info "Czyszczę cache pacmana, yay i flatpaka..."
 
 sudo pacman -Sc --noconfirm >/dev/null 2>&1 || true
-yay -Sc --noconfirm >/dev/null 2>&1 || true
+# yay czyszczone jako odpowiedni user
+if [ "$EUID" -eq 0 ] && id -u builduser >/dev/null 2>&1; then
+    sudo -u builduser bash -c "yay -Sc --noconfirm >/dev/null 2>&1 || true"
+else
+    yay -Sc --noconfirm >/dev/null 2>&1 || true
+fi
 flatpak uninstall --unused -y >/dev/null 2>&1 || true
 flatpak remove --unused -y >/dev/null 2>&1 || true
 flatpak repair --user -y >/dev/null 2>&1 || true
