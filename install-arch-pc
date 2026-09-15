@@ -143,7 +143,7 @@ PACMAN_PKGS=(
   openrgb steam qbittorrent obs-studio elisa thunderbird putty okular filezilla gsmartcontrol protontricks
   gwenview kdegraphics-thumbnailers ffmpegthumbs mangohud occt btop spectacle qt6-virtualkeyboard
   kolourpaint gnome-maps gnome-calendar kcalc sweeper vlc vlc-plugins-all scrcpy libreoffice-fresh
-  libreoffice-fresh-pl gnome-disk-utility ntfs-3g exfatprogs dosfstools btrfs-progs xfsprogs f2fs-tools
+  libreoffice-fresh-pl gnome-disk-utility ntfs-3g exfatprogs dosfstools btrfs-progs xfsprogs f2fs-tools ntfsprogs
   wine dosbox gst-plugins-bad gst-plugins-base gst-plugins-good gst-plugins-ugly libgphoto2 samba sane
   unixodbc wine-gecko wine-mono linux-lts-headers pacman-contrib gamemode gamescope breeze-gtk
   dolphin-plugins kfind ttf-jetbrains-mono ttf-fira-code dunst reaper kdenlive mediainfo mlt frei0r-plugins ladspa swh-plugins movit dvgrab
