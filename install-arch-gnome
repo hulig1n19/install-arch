@@ -101,6 +101,8 @@ GNOME_PKGS=(
   gnome-terminal
   gnome-tweaks
   gnome-browser-connector
+  archlinux-wallpaper
+  extension-manager
   gdm
 )
 
@@ -135,10 +137,10 @@ fi
 PACMAN_PKGS=(
   git base-devel less wget firefox firefox-i18n-pl flatpak power-profiles-daemon
   file-roller p7zip unrar unzip lrzip lzop zip papirus-icon-theme capitaine-cursors opencl-mesa
-  sshfs noto-fonts-cjk noto-fonts-extra cantarell-fonts hunspell-pl lutris archlinux-wallpaper
-  lact lib32-mesa vulkan-radeon lib32-vulkan-radeon clinfo vim cmake ninja
-  steam qbittorrent obs-studio thunderbird putty filezilla gsmartcontrol protontricks
-  mangohud occt btop spectacle gnome-maps gnome-calendar vlc vlc-plugins-all scrcpy libreoffice-fresh
+  sshfs noto-fonts-cjk noto-fonts-extra cantarell-fonts hunspell-pl lutris elisa
+  lact lib32-mesa vulkan-radeon lib32-vulkan-radeon clinfo gedit cmake ninja
+  steam qbittorrent obs-studio thunderbird putty filezilla protontricks loupe gnome-calculator
+  mangohud gnome-maps gnome-calendar vlc vlc-plugins-all libreoffice-fresh
   libreoffice-fresh-pl gnome-disk-utility ntfs-3g exfatprogs dosfstools btrfs-progs xfsprogs f2fs-tools ntfsprogs
   wine dosbox gst-plugins-bad gst-plugins-base gst-plugins-good gst-plugins-ugly libgphoto2 samba sane
   unixodbc wine-gecko wine-mono linux-lts-headers pacman-contrib gamemode gamescope
