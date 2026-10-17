@@ -133,7 +133,7 @@ fi
 PACMAN_PKGS=(
   git base-devel less wget firefox firefox-i18n-pl flatpak power-profiles-daemon
   file-roller p7zip unrar unzip lrzip lzop zip papirus-icon-theme capitaine-cursors opencl-mesa
-  sshfs noto-fonts-cjk noto-fonts-extra cantarell-fonts hunspell-pl lutris
+  sshfs noto-fonts-cjk noto-fonts-extra cantarell-fonts hunspell-pl lutris archlinux-wallpaper
   lact lib32-mesa vulkan-radeon lib32-vulkan-radeon clinfo vim cmake ninja
   steam qbittorrent obs-studio thunderbird putty filezilla gsmartcontrol protontricks
   mangohud occt btop spectacle gnome-maps gnome-calendar vlc vlc-plugins-all scrcpy libreoffice-fresh
