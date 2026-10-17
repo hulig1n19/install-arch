@@ -99,6 +99,7 @@ GNOME_PKGS=(
   gnome-control-center
   nautilus
   gnome-terminal
+  gnome-tweaks
   gdm
 )
 
