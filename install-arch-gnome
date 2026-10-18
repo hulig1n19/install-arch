@@ -138,7 +138,7 @@ PACMAN_PKGS=(
   git base-devel less wget firefox firefox-i18n-pl flatpak power-profiles-daemon
   file-roller p7zip unrar unzip lrzip lzop zip papirus-icon-theme capitaine-cursors opencl-mesa
   sshfs noto-fonts-cjk noto-fonts-extra cantarell-fonts hunspell-pl lutris elisa
-  lact lib32-mesa vulkan-radeon lib32-vulkan-radeon clinfo gedit cmake ninja
+  lact lib32-mesa vulkan-radeon lib32-vulkan-radeon clinfo gedit cmake ninja nano
   steam qbittorrent obs-studio thunderbird putty filezilla protontricks loupe gnome-calculator
   mangohud gnome-maps gnome-calendar vlc vlc-plugins-all libreoffice-fresh
   libreoffice-fresh-pl gnome-disk-utility ntfs-3g exfatprogs dosfstools btrfs-progs xfsprogs f2fs-tools ntfsprogs
