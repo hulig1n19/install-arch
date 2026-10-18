@@ -101,7 +101,7 @@ GNOME_PKGS=(
   gnome-terminal
   gnome-tweaks
   gnome-browser-connector
-  archlinux-wallpaper
+  gnome-backgrounds
   extension-manager
   gdm
 )
