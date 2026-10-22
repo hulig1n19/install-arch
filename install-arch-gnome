@@ -99,11 +99,10 @@ GNOME_PKGS=(
   gnome-control-center
   nautilus
   gnome-terminal
-  gnome-tweaks
+  gnome-software
   gnome-browser-connector
   gnome-backgrounds
   extension-manager
-  gnome-software
   gdm
 )
 
