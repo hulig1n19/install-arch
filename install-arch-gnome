@@ -98,6 +98,7 @@ GNOME_PKGS=(
   gnome-shell
   gnome-control-center
   nautilus
+  gnome-tweaks
   gnome-terminal
   gnome-software
   gnome-browser-connector
