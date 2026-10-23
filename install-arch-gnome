@@ -179,6 +179,7 @@ fi
 
 FLATPAK_APPS=(
   com.vysp3r.ProtonPlus
+  io.github.realmazharhussain.GdmSettings
 )
 
 info "Instaluję aplikacje Flatpak..."
