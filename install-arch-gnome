@@ -104,7 +104,6 @@ GNOME_PKGS=(
   gnome-browser-connector
   gnome-backgrounds
   extension-manager
-  archlinux-wallpaper
   gdm
 )
 
