@@ -179,7 +179,6 @@ fi
 
 FLATPAK_APPS=(
   com.vysp3r.ProtonPlus
-  io.github.realmazharhussain.GdmSettings
   io.bassi.Amberol
 )
 
