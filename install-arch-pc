@@ -102,7 +102,8 @@ PLASMA_PKGS=(
   kate
   nano
   kscreen
-  gdm
+  sddm
+  sddm-kcm
 )
 
 for pkg in "${PLASMA_PKGS[@]}"; do
@@ -117,22 +118,15 @@ ok "Plasma Desktop i komponenty KDE zainstalowane."
 
 
 #######################################################################
-# 3. Włączenie menedżera logowania GDM
+# 3. Włączenie menedżera logowania SDDM
 #######################################################################
 
-info "Konfiguruję menedżer logowania GDM..."
-
-# Wyłącz SDDM na wszelki wypadek, gdyby był wcześniej
-if systemctl is-enabled --quiet sddm 2>/dev/null; then
-    sudo systemctl disable sddm
-    warn "Wyłączono starą usługę SDDM."
-fi
-
-if ! systemctl is-enabled --quiet gdm 2>/dev/null; then
-    sudo systemctl enable gdm
-    ok "GDM włączony."
+info "Włączam SDDM..."
+if ! systemctl is-enabled --quiet sddm 2>/dev/null; then
+    sudo systemctl enable sddm
+    ok "SDDM włączony."
 else
-    warn "GDM już jest włączony."
+    warn "SDDM już jest włączony."
 fi
 
 
@@ -147,7 +141,7 @@ PACMAN_PKGS=(
   kdeplasma-addons kdeconnect sshfs noto-fonts-cjk noto-fonts-extra cantarell-fonts hunspell-pl lutris
   lact lib32-mesa vulkan-radeon lib32-vulkan-radeon clinfo kwallet-pam kwalletmanager vim kclock cmake ninja
   steam qbittorrent obs-studio elisa thunderbird putty okular filezilla gsmartcontrol protontricks
-  gwenview kdegraphics-thumbnailers ffmpegthumbs mangohud occt btop spectacle
+  gwenview kdegraphics-thumbnailers ffmpegthumbs mangohud occt btop spectacle qt6-virtualkeyboard
   kolourpaint gnome-maps gnome-calendar kcalc sweeper vlc vlc-plugins-all scrcpy libreoffice-fresh
   libreoffice-fresh-pl gnome-disk-utility ntfs-3g exfatprogs dosfstools btrfs-progs xfsprogs f2fs-tools ntfsprogs
   wine dosbox gst-plugins-bad gst-plugins-base gst-plugins-good gst-plugins-ugly libgphoto2 samba sane
@@ -253,7 +247,27 @@ fi
 
 
 #######################################################################
-# 9. Silent Boot (UKI Cmdline) + mkinitcpio (amdgpu, brak fsck)
+# 9. SDDM — konfiguracja
+#######################################################################
+
+info "Konfiguruję SDDM..."
+SDDM_FILE="/etc/sddm.conf"
+SDDM_BLOCK=$'[General]\nInputMethod=qtvirtualkeyboard\n\n[Theme]\nCurrent=breeze'
+
+sudo touch "$SDDM_FILE"
+
+if grep -Fq "[General]" "$SDDM_FILE" && grep -Fq "InputMethod=qtvirtualkeyboard" "$SDDM_FILE" && grep -Fq "[Theme]" "$SDDM_FILE" && grep -Fq "Current=breeze" "$SDDM_FILE"; then
+    warn "Blok SDDM już istnieje."
+else
+    info "Dodaję blok SDDM..."
+    sudo sed -i ':a;/^\s*$/{$d;N;ba}' "$SDDM_FILE"
+    printf "%s\n" "$SDDM_BLOCK" | sudo tee -a "$SDDM_FILE" >/dev/null
+    ok "Blok SDDM dodany."
+fi
+
+
+#######################################################################
+# 10. Silent Boot (UKI Cmdline) + mkinitcpio (amdgpu, brak fsck)
 #######################################################################
 
 info "Konfiguruję cichy rozruch (Silent Boot) oraz mkinitcpio..."
@@ -320,7 +334,7 @@ fi
 
 
 #######################################################################
-# 10. systemd-boot — timeout 0
+# 11. systemd-boot — timeout 0
 #######################################################################
 
 info "Ustawiam timeout 0 w systemd-boot..."
@@ -340,7 +354,7 @@ fi
 
 
 #######################################################################
-# 11. Gamemode
+# 12. Gamemode
 #######################################################################
 
 info "Konfiguruję gamemode..."
@@ -373,7 +387,7 @@ fi
 
 
 #######################################################################
-# 12. Czyszczenie cache
+# 13. Czyszczenie cache
 #######################################################################
 
 info "Czyszczę cache pacmana, yay i flatpaka..."
@@ -395,7 +409,7 @@ ok "Cache wyczyszczony."
 
 
 #######################################################################
-# 13. Finalna aktualizacja
+# 14. Finalna aktualizacja
 #######################################################################
 
 info "Finalna aktualizacja systemu..."
