@@ -247,7 +247,31 @@ fi
 
 
 #######################################################################
-# 9. Silent Boot (UKI Cmdline) + mkinitcpio (amdgpu, brak fsck)
+# 9. Instalacja pakietów z AUR (przez yay)
+#######################################################################
+
+AUR_PKGS=(
+  nautilus-backspace
+)
+
+info "Instaluję pakiety z AUR..."
+for pkg in "${AUR_PKGS[@]}"; do
+  if ! pacman -Qi "$pkg" >/dev/null 2>&1; then
+    info "Instaluję z AUR: $pkg"
+    if [ "$EUID" -eq 0 ] && [ -n "${SUDO_USER:-}" ]; then
+      sudo -u "$SUDO_USER" yay -S --noconfirm "$pkg"
+    else
+      yay -S --noconfirm "$pkg"
+    fi
+  else
+    warn "Pominięto — $pkg już jest zainstalowany."
+  fi
+done
+ok "Pakiety z AUR zainstalowane."
+
+
+#######################################################################
+# 10. Silent Boot (UKI Cmdline) + mkinitcpio (amdgpu, brak fsck)
 #######################################################################
 
 info "Konfiguruję cichy rozruch (Silent Boot) oraz mkinitcpio..."
@@ -314,7 +338,7 @@ fi
 
 
 #######################################################################
-# 10. systemd-boot — timeout 0
+# 11. systemd-boot — timeout 0
 #######################################################################
 
 info "Ustawiam timeout 0 w systemd-boot..."
@@ -334,7 +358,7 @@ fi
 
 
 #######################################################################
-# 11. Gamemode
+# 12. Gamemode
 #######################################################################
 
 info "Konfiguruję gamemode..."
@@ -367,7 +391,7 @@ fi
 
 
 #######################################################################
-# 12. Czyszczenie cache
+# 13. Czyszczenie cache
 #######################################################################
 
 info "Czyszczę cache pacmana, yay i flatpaka..."
@@ -389,7 +413,7 @@ ok "Cache wyczyszczony."
 
 
 #######################################################################
-# 13. Finalna aktualizacja
+# 14. Finalna aktualizacja
 #######################################################################
 
 info "Finalna aktualizacja systemu..."
