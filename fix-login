@@ -1,0 +1,75 @@
+#!/bin/bash
+
+# Definicje kolorów i stylów
+CYAN="\e[1m\e[36m"
+YELLOW="\e[1m\e[33m"
+RED="\e[1m\e[31m"
+GREEN="\e[1m\e[32m"
+BLUE="\e[1m\e[34m"
+RESET="\e[0m"
+
+#######################################################################
+# Banner ARCH LINUX (minimalistyczny)
+#######################################################################
+
+arch_logo() {
+    clear
+    echo -e "${CYAN}"
+    echo "╔════════════════════════════════════════════════════════════════════════════════╗"
+    echo "║                             ARCH LINUX - KDE Plasma                            ║"
+    echo "║    Skrypt Ukrywania Przycisku Klawiatury Ekranowej (SDDM + LockScreen) 2026    ║"
+    echo "║                                    26.10.2026                                  ║"
+    echo "╚════════════════════════════════════════════════════════════════════════════════╝"
+    echo -e "${RESET}"
+    echo -e "${YELLOW} Autor Skryptu: ${RESET}Krzysiek Wierciuch (Hulig1n19)"
+    echo -e "${RED} Godzina Utworzenia: ${RESET}19:38"
+    echo -e "${GREEN} Data Utworzenia: ${RESET}26.10.2026"
+    echo -e "${BLUE} Zoptymalizowano Dla: ${RESET}AMD Ryzen + AMD Radeon"
+    echo ""
+}
+
+# Wywołanie bannera
+arch_logo
+sleep 1
+
+# --- WŁAŚCIWA CZĘŚĆ SKRYPTU ---
+
+SDDM_TARGET="/usr/share/sddm/themes/breeze/Main.qml"
+LOCK_TARGET="/usr/share/plasma/shells/org.kde.plasma.desktop/contents/lockscreen/LockScreenUi.qml"
+
+echo -e "${CYAN}----------------------------------------------------------------${RESET}"
+echo -e "${CYAN}   Ukrywanie przycisku klawiatury Ekranowej (SDDM + LockScreen)  ${RESET}"
+echo -e "${CYAN}----------------------------------------------------------------${RESET}"
+
+# 1. Naprawa SDDM (Ekran logowania)
+if [ -f "$SDDM_TARGET" ]; then
+    if grep -q "visible: false" "$SDDM_TARGET"; then
+        echo -e "${GREEN}✔ SDDM: Przycisk jest już ukryty.${RESET}"
+    else
+        sudo sed -i '/id: virtualKeyboardButton/a \                visible: false' "$SDDM_TARGET"
+        echo -e "${GREEN}✔ SDDM: Pomyślnie ukryto przycisk klawiatury.${RESET}"
+    fi
+else
+    echo -e "${RED}✘ SDDM: Nie znaleziono pliku Main.qml!${RESET}"
+fi
+
+# 2. Naprawa Ekranu Blokady (Lock Screen)
+if [ -f "$LOCK_TARGET" ]; then
+    if grep -q "visible: false" "$LOCK_TARGET"; then
+        echo -e "${GREEN}✔ Ekran blokady: Przycisk jest już ukryty.${RESET}"
+    else
+        sudo sed -i '/id: virtualKeyboardButton/a \                visible: false' "$LOCK_TARGET"
+        echo -e "${GREEN}✔ Ekran blokady: Pomyślnie ukryto przycisk klawiatury.${RESET}"
+    fi
+else
+    echo -e "${RED}✘ Ekran blokady: Nie znaleziono pliku LockScreenUi.qml!${RESET}"
+fi
+
+echo -e "\n${CYAN}Gotowe! Wszystkie zmiany zostały zastosowane w 100%.${RESET}"
+
+# Odliczanie 5 sekund i zamknięcie terminala
+echo -e "${YELLOW}Zamykanie terminala za 5 sekund...${RESET}"
+sleep 5
+
+# Natychmiastowe zamknięcie okna Konsoli:
+kill -9 $PPID
