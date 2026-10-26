@@ -418,13 +418,6 @@ ok "System gotowy."
 
 echo -e "${GREEN}=== Operacja zakończona sukcesem ===${RESET}"
 echo ""
-info "Restart systemu nastąpi za 10 sekund."
-echo ""
 
-for i in {10..1}; do
-    echo "Restart za $i..."
-    sleep 1
-done
-
-info "Restartuję system..."
-sudo systemctl reboot
+sleep 5
+exit
