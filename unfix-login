@@ -69,6 +69,4 @@ fi
 echo -e "\n${CYAN}Gotowe! Wszystkie zmiany zostały cofnięte.${RESET}"
 echo -e "${YELLOW}Zamykanie terminala za 5 sekund...${RESET}"
 sleep 5
-
-# Natychmiastowe zamknięcie okna Konsoli:
-kill -9 $PPID
+exit
