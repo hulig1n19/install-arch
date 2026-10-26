@@ -70,6 +70,4 @@ echo -e "\n${CYAN}Gotowe! Wszystkie zmiany zostały zastosowane w 100%.${RESET}"
 # Odliczanie 5 sekund i zamknięcie terminala
 echo -e "${YELLOW}Zamykanie terminala za 5 sekund...${RESET}"
 sleep 5
-
-# Natychmiastowe zamknięcie okna Konsoli:
-kill -9 $PPID
+exit
