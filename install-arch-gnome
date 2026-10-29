@@ -252,6 +252,7 @@ fi
 
 AUR_PKGS=(
   nautilus-backspace
+  gdm-settings
 )
 
 info "Instaluję pakiety z AUR..."
