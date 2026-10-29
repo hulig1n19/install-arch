@@ -102,6 +102,7 @@ PLASMA_PKGS=(
   kate
   nano
   kscreen
+  plasma-keyboard
   lightdm
 )
 
