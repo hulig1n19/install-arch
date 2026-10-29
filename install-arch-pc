@@ -102,8 +102,7 @@ PLASMA_PKGS=(
   kate
   nano
   kscreen
-  sddm
-  sddm-kcm
+  lightdm
 )
 
 for pkg in "${PLASMA_PKGS[@]}"; do
@@ -118,15 +117,15 @@ ok "Plasma Desktop i komponenty KDE zainstalowane."
 
 
 #######################################################################
-# 3. Włączenie menedżera logowania SDDM
+# 3. Włączenie menedżera logowania LightDM
 #######################################################################
 
-info "Włączam SDDM..."
-if ! systemctl is-enabled --quiet sddm 2>/dev/null; then
-    sudo systemctl enable sddm
-    ok "SDDM włączony."
+info "Włączam LightDM..."
+if ! systemctl is-enabled --quiet lightdm 2>/dev/null; then
+    sudo systemctl enable lightdm
+    ok "LightDM włączony."
 else
-    warn "SDDM już jest włączony."
+    warn "LightDM już jest włączony."
 fi
 
 
@@ -245,24 +244,37 @@ else
   warn "yay już jest."
 fi
 
-
-#######################################################################
-# 9. SDDM — konfiguracja
-#######################################################################
-
-info "Konfiguruję SDDM..."
-SDDM_FILE="/etc/sddm.conf"
-SDDM_BLOCK=$'[Theme]\nCurrent=breeze'
-
-sudo touch "$SDDM_FILE"
-
-if grep -Fq "[Theme]" "$SDDM_FILE" && grep -Fq "Current=breeze" "$SDDM_FILE"; then
-    warn "Blok SDDM już istnieje."
+# =======================================================================
+# Dodatkowe pakiety z AUR dla LightDM (Slick Greeter + panel ustawień)
+# =======================================================================
+info "Instaluję Slick Greeter i lightdm-settings z AUR..."
+if [ "$EUID" -eq 0 ]; then
+    # Jeśli skrypt odpala root, używamy tymczasowego buildusera do instalacji z AUR przez yay
+    useradd -m -d /tmp/builduser builduser || true
+    echo 'builduser ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/builduser
+    sudo -u builduser yay -S --noconfirm lightdm-slick-greeter lightdm-settings
+    rm -f /etc/sudoers.d/builduser
+    userdel -r builduser || true
 else
-    info "Dodaję blok SDDM..."
-    sudo sed -i ':a;/^\s*$/{$d;N;ba}' "$SDDM_FILE"
-    printf "%s\n" "$SDDM_BLOCK" | sudo tee -a "$SDDM_FILE" >/dev/null
-    ok "Blok SDDM dodany."
+    yay -S --noconfirm lightdm-slick-greeter lightdm-settings
+fi
+ok "Slick Greeter i lightdm-settings zainstalowane."
+
+
+#######################################################################
+# 9. LightDM — konfiguracja Slick Greeter
+#######################################################################
+
+info "Konfiguruję LightDM i Slick Greeter..."
+LIGHTDM_CONF="/etc/lightdm/lightdm.conf"
+
+if [ -f "$LIGHTDM_CONF" ]; then
+    # Ustawiamy slick-greeter w pliku konfiguracyjnym LightDM
+    sudo sed -i 's/^#greeter-session=.*/greeter-session=lightdm-slick-greeter/' "$LIGHTDM_CONF"
+    sudo sed -i 's/^greeter-session=.*/greeter-session=lightdm-slick-greeter/' "$LIGHTDM_CONF"
+    ok "Skonfigurowano Slick Greeter w lightdm.conf."
+else
+    warn "Nie znaleziono pliku $LIGHTDM_CONF."
 fi
 
 
