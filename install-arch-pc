@@ -120,16 +120,16 @@ ok "Plasma Desktop, plasma-login-manager i komponenty KDE zainstalowane."
 
 
 #######################################################################
-# 3. Włączenie nowego menedżera logowania plasma-login-manager
+# 3. Włączenie menedżera logowania
 #######################################################################
 
 info "Konfiguruję menedżer logowania..."
 
-if ! systemctl is-enabled --quiet plasma-login-manager 2>/dev/null; then
-    sudo systemctl enable plasma-login-manager
-    ok "plasma-login-manager włączony."
+if ! systemctl is-enabled --quiet sddm 2>/dev/null; then
+    sudo systemctl enable sddm
+    ok "sddm włączony."
 else
-    warn "plasma-login-manager już jest włączony."
+    warn "sddm już jest włączony."
 fi
 
 
