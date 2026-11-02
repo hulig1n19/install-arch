@@ -99,6 +99,7 @@ PLASMA_PKGS=(
   kde-gtk-config
   plasma-keyboard
   plasma-login-manager
+  plasma-welcome
   drkonqi
   kinfocenter
   konsole
