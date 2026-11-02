@@ -89,17 +89,18 @@ ok "System zaktualizowany."
 
 
 #######################################################################
-# 2. Instalacja Plasma Desktop + SDDM
+# 2. Instalacja Plasma Desktop + plasma-login-manager + Narzędzia
 #######################################################################
 
-info "Instaluję Plasma Desktop i komponenty KDE..."
+info "Instaluję Plasma Desktop, nowy menedżer logowania i komponenty KDE..."
 
 PLASMA_PKGS=(
   plasma-desktop
   kde-gtk-config
   plasma-keyboard
-  sddm
-  sddm-kcm
+  plasma-login-manager
+  drkonqi
+  kinfocenter
   konsole
   dolphin
   kate
@@ -115,26 +116,22 @@ for pkg in "${PLASMA_PKGS[@]}"; do
     warn "Pominięto — $pkg już jest."
   fi
 done
-ok "Plasma Desktop i komponenty KDE zainstalowane."
+ok "Plasma Desktop, plasma-login-manager i komponenty KDE zainstalowane."
 
 
 #######################################################################
-# 3. Włączenie menedżera logowania SDDM
+# 3. Włączenie nowego menedżera logowania plasma-login-manager
 #######################################################################
 
-info "Włączam SDDM..."
+info "Konfiguruję menedżer logowania..."
 
-if systemctl is-enabled --quiet lightdm 2>/dev/null; then
-    sudo systemctl disable lightdm
-    ok "LightDM wyłączony."
-fi
-
-if ! systemctl is-enabled --quiet sddm 2>/dev/null; then
-    sudo systemctl enable sddm
-    ok "SDDM włączony."
+if ! systemctl is-enabled --quiet plasma-login-manager 2>/dev/null; then
+    sudo systemctl enable plasma-login-manager
+    ok "plasma-login-manager włączony."
 else
-    warn "SDDM już jest włączony."
+    warn "plasma-login-manager już jest włączony."
 fi
+
 
 #######################################################################
 # 4. Instalacja pakietów pacman
@@ -250,64 +247,6 @@ if ! command -v yay >/dev/null 2>&1; then
 else
   warn "yay już jest."
 fi
-
-
-#######################################################################
-# 9. SDDM — Wayland + automatyczna klawiatura ekranowa + Breeze
-#######################################################################
-
-info "Konfiguruję SDDM Wayland, klawiaturę ekranową i motyw Breeze..."
-
-SDDM_DIR="/etc/sddm.conf.d"
-SDDM_FILE="$SDDM_DIR/10-wayland.conf"
-SDDM_MAIN="/etc/sddm.conf"
-SDDM_TMP="$(mktemp)"
-
-# Konfiguracja SDDM Wayland i klawiatury ekranowej
-cat > "$SDDM_TMP" <<'EOF'
-[General]
-DisplayServer=wayland
-GreeterEnvironment=QT_WAYLAND_SHELL_INTEGRATION=layer-shell
-
-[Wayland]
-CompositorCommand=kwin_wayland --drm --no-lockscreen --no-global-shortcuts --locale1 --inputmethod plasma-keyboard
-EOF
-
-sudo mkdir -p "$SDDM_DIR"
-
-# Utworzenie lub aktualizacja konfiguracji SDDM
-if ! sudo cmp -s "$SDDM_TMP" "$SDDM_FILE" 2>/dev/null; then
-    sudo install -m 644 "$SDDM_TMP" "$SDDM_FILE"
-    ok "Zapisano konfigurację SDDM Wayland."
-else
-    warn "Konfiguracja SDDM Wayland już istnieje — pominięto."
-fi
-
-rm -f "$SDDM_TMP"
-
-# Ustawienie motywu Breeze
-sudo touch "$SDDM_MAIN"
-
-if sudo grep -qE '^[[:space:]]*\[Theme\][[:space:]]*$' "$SDDM_MAIN"; then
-
-    if sudo grep -qE '^[[:space:]]*Current[[:space:]]*=[[:space:]]*breeze[[:space:]]*$' "$SDDM_MAIN"; then
-        warn "Motyw Breeze już jest ustawiony — pominięto."
-
-    elif sudo sed -n '/^[[:space:]]*\[Theme\][[:space:]]*$/,/^[[:space:]]*\[/p' "$SDDM_MAIN" | grep -qE '^[[:space:]]*Current[[:space:]]*='; then
-        sudo sed -i '/^[[:space:]]*\[Theme\][[:space:]]*$/,/^[[:space:]]*\[/ s/^[[:space:]]*Current[[:space:]]*=.*/Current=breeze/' "$SDDM_MAIN"
-        ok "Ustawiono motyw Breeze."
-
-    else
-        sudo sed -i '/^[[:space:]]*\[Theme\][[:space:]]*$/a Current=breeze' "$SDDM_MAIN"
-        ok "Dodano wpis Current=breeze."
-    fi
-
-else
-    printf '\n[Theme]\nCurrent=breeze\n' | sudo tee -a "$SDDM_MAIN" > /dev/null
-    ok "Dodano sekcję Theme z motywem Breeze."
-fi
-
-ok "Konfiguracja SDDM zakończona."
 
 
 #######################################################################
